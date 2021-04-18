@@ -24,7 +24,7 @@ int main() {
   });
   whl::println();
 
-  whl::for_each_indexed<std::size_t>(vec.begin(), vec.end(), [](auto i, auto val) {
+  whl::for_each_indexed<std::size_t>(vec.begin(), vec.end(), [](auto &&i, auto &&val) {
     whl::print(i, val);
   });
   whl::println();
@@ -34,17 +34,23 @@ int main() {
   whl::println(str);
   whl::println(whl::str::tolower(str));
   whl::println(str);
-  whl::println(whl::str::toupper<std::string>("str"));
+  whl::println(whl::str::toupper("str"));
+  whl::println(whl::str::tolower(str.begin() + 1, str.end() - 1));
+  whl::for_each_indexed(whl::str::toupper<std::vector<char>>(str.begin() + 1, str.end() - 1), [](auto &&i, auto &&v) {
+    whl::print(i, ',', v, ' ');
+  });
+  whl::println();
 
   whl::println(
-      whl::str::join(whl::str::split(str, "_"), ","), "\n",
-      whl::str::join(whl::str::split<std::string>("int float double", "o"), ','), "\n",
-      whl::str::join(whl::str::split<std::string, std::list<std::string>>("int float double", "t"), ","), "\n",
-      whl::str::join<std::list<std::string>, std::string>(whl::str::split<std::string, std::list<std::string>>(
+      whl::str::join(whl::str::split(str.begin(), str.end(), "_"), ","), "\n",
+      whl::str::join(whl::str::split<std::vector<std::string>>("int float double", "o"), ','), "\n",
+      whl::str::join(whl::str::split<std::list<std::string>>("int float double", "t"), ","), "\n",
+      whl::str::join<std::string>(whl::str::split<std::list<std::string>>(
           "int float double",
           " "), "__")
   );
   std::vector<const char *> v = {"(", "_", ")"};
-  whl::println(whl::str::join<std::vector<const char *>, std::string>(v, "O"));
+  whl::println(whl::str::join<std::string>(v, "O"));
+  whl::println(whl::str::join<std::string>(v.begin(), v.end(), "|"));
   return 0;
 }
