@@ -25,6 +25,7 @@
 #include <whl/common.hpp>
 #include <whl/function.hpp>
 #include <whl/literals.hpp>
+#include <whl/operation.hpp>
 #include <whl/option.hpp>
 #include <whl/string.hpp>
 

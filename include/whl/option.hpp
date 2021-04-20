@@ -17,6 +17,10 @@
 #ifndef WHEEL_WHL_OPTION_HPP
 #define WHEEL_WHL_OPTION_HPP
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+# pragma once
+#endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+
 namespace whl {
 
 template<typename T>

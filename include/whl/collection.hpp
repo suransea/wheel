@@ -30,17 +30,16 @@
 
 namespace whl {
 
-template<typename Size=std::size_t, typename Iter>
-inline void for_each_indexed(Iter first, Iter last, bi_consumer<Size, decltype(*first)> consumer) {
+template<typename Size=std::size_t, typename Iter, typename Fn>
+inline void for_each_indexed(Iter first, Iter last, Fn fn) {
   for (Size i{}; first != last; ++first, ++i) {
-    consumer(i, *first);
+    fn(i, *first);
   }
 }
 
-template<typename C>
-inline void for_each_indexed(const C &coll,
-                             bi_consumer<decltype(std::size(coll)), decltype(*std::begin(coll))> consumer) {
-  for_each_indexed(std::begin(coll), std::end(coll), consumer);
+template<typename C, typename Fn>
+inline void for_each_indexed(const C &coll, Fn fn) {
+  for_each_indexed<decltype(std::size(coll))>(std::begin(coll), std::end(coll), fn);
 }
 
 template<typename C>
