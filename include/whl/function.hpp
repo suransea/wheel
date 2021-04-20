@@ -19,10 +19,12 @@
 
 #include <functional>
 
-namespace whl {
+namespace whl::func {
 
 template<typename T>
 using consumer = std::function<void(T)>;
+
+using action = std::function<void(void)>;
 
 template<typename T, typename U>
 using bi_consumer = std::function<void(T, U)>;
@@ -41,6 +43,19 @@ using predicate = std::function<bool(T)>;
 
 template<typename T, typename U>
 using bi_predicate = std::function<bool(T, U)>;
+
+constexpr inline auto identity = [](auto &&x) { return x; };
+
+constexpr inline auto always_true = [](auto &&x) { return true; };
+
+constexpr inline auto always_false = [](auto &&x) { return false; };
+
+constexpr inline auto empty_consumer = [](auto &&x) {};
+
+constexpr inline auto do_nothing = []() {};
+
+template<typename Val>
+constexpr inline auto supply(Val val) { return [val]() { return val; }; }
 
 } // namespace whl
 

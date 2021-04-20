@@ -53,16 +53,13 @@ int main() {
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
   whl::println(whl::str::join(std::array{"a", "b", "c"}, "-"));
 
-  std::vector<std::string> ss = {"aa", "bb", "cc", "dd"};
-  ss | whl::op::tap([](auto &&it) {
-    whl::print(it, ' ');
-  }) | whl::op::tap_indexed([](auto &&i, auto &&v) {
-    whl::print(i, ' ', v, ' ');
-  }) | whl::op::filter([](auto &&it) {
-    return it != "aa";
-  }) | whl::op::map<std::deque<std::int32_t>>([](auto &&it) {
-    return it[0] + it[1];
-  }) | whl::op::print();
+  std::vector<std::string>{"aa", "bb", "cc", "dd"}
+      | whl::op::tap([](auto &&it) { whl::print(it, ' '); })
+      | whl::op::tap_indexed([](auto &&i, auto &&v) { whl::print(i, ' ', v, ' '); })
+      | whl::op::filter([](auto &&it) { return it != "aa"; })
+      | whl::op::flat_map<std::vector<char>>(whl::func::identity)
+      | whl::op::map<std::deque<std::int32_t>>(whl::func::identity)
+      | whl::op::print();
 
   whl::println();
   whl::str::split("int float double", " ") | whl::op::print();

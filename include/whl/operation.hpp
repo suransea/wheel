@@ -66,6 +66,18 @@ constexpr inline auto map(Fn fn) {
   });
 }
 
+template<typename C, typename Fn>
+constexpr inline auto flat_map(Fn fn) {
+  return operation([&fn](auto &&coll) {
+    C result{};
+    std::for_each(std::begin(coll), std::end(coll), [&fn, &result](auto &&it) {
+      auto &&mapped = fn(it);
+      std::copy(std::begin(mapped), std::end(mapped), std::back_inserter(result));
+    });
+    return result;
+  });
+}
+
 template<typename Pred>
 constexpr inline auto filter(Pred pred) {
   return operation([&pred](auto &&coll) {
