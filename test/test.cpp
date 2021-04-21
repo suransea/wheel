@@ -53,16 +53,30 @@ int main() {
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
   whl::println(whl::str::join(std::array{"a", "b", "c"}, "-"));
 
-  std::vector<std::string>{"aa", "bb", "cc", "dd"}
+  auto &&val = std::vector<std::string>{"aa", "bb", "cc", "dd", "ee", "ff", "gg"}
       | whl::op::tap([](auto &&it) { whl::print(it, ' '); })
       | whl::op::tap_indexed([](auto &&i, auto &&v) { whl::print(i, ' ', v, ' '); })
-      | whl::op::filter([](auto &&it) { return it != "aa"; })
-      | whl::op::flat_map<std::vector<char>>(whl::func::identity)
-      | whl::op::map<std::deque<std::int32_t>>(whl::func::identity)
-      | whl::op::print();
+      | whl::op::take(6)
+      | whl::op::drop(1)
+      | whl::op::println()
+      | whl::op::reverse()
+      | whl::op::println()
+      | whl::op::sort()
+      | whl::op::println()
+      | whl::op::filter(whl::func::not_equal_with("bb"))
+      | whl::op::println()
+      | whl::op::flat_map(whl::func::identity)
+      | whl::op::println()
+      | whl::op::to<std::deque>()
+      | whl::op::map([](auto &&it) { return static_cast<int32_t>(it); })
+      | whl::op::println()
+      | whl::op::reduce(whl::func::plus);
+  whl::println(val);
 
-  whl::println();
+  std::vector{"a", "b", "c"}
+      | whl::op::zip(std::vector{0, 1, 2})
+      | whl::op::tap([](auto &&it) { whl::println(it.first, it.second); });
+
   whl::str::split("int float double", " ") | whl::op::print();
-
   return 0;
 }

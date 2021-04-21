@@ -23,9 +23,11 @@
 
 #include <functional>
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 
 #include "whl/collection.hpp"
+#include "whl/type.hpp"
 
 namespace whl::op {
 
@@ -43,7 +45,7 @@ struct operation : Fn {
 
 template<typename Fn>
 constexpr inline auto tap(Fn fn) {
-  return operation([&fn](auto &&coll) {
+  return operation([fn](auto &&coll) {
     std::for_each(std::begin(coll), std::end(coll), fn);
     return coll;
   });
@@ -51,26 +53,26 @@ constexpr inline auto tap(Fn fn) {
 
 template<typename Fn>
 constexpr inline auto tap_indexed(Fn fn) {
-  return operation([&fn](auto &&coll) {
+  return operation([fn](auto &&coll) {
     for_each_indexed(coll, fn);
     return coll;
   });
 }
 
-template<typename C, typename Fn>
+template<template<typename...> typename C=std::vector, typename Fn>
 constexpr inline auto map(Fn fn) {
-  return operation([&fn](auto &&coll) {
-    C result{};
+  return operation([fn](auto &&coll) {
+    C<remove_cr_t<decltype(fn(*std::begin(coll)))>> result{};
     std::transform(std::begin(coll), std::end(coll), std::back_inserter(result), fn);
     return result;
   });
 }
 
-template<typename C, typename Fn>
+template<template<typename...> typename C=std::vector, typename Fn>
 constexpr inline auto flat_map(Fn fn) {
-  return operation([&fn](auto &&coll) {
-    C result{};
-    std::for_each(std::begin(coll), std::end(coll), [&fn, &result](auto &&it) {
+  return operation([fn](auto &&coll) {
+    C<remove_cr_t<decltype(*std::begin(fn(*std::begin(coll))))>> result{};
+    std::for_each(std::begin(coll), std::end(coll), [fn, &result](auto &&it) {
       auto &&mapped = fn(it);
       std::copy(std::begin(mapped), std::end(mapped), std::back_inserter(result));
     });
@@ -78,13 +80,96 @@ constexpr inline auto flat_map(Fn fn) {
   });
 }
 
+template<template<typename...> typename C>
+constexpr inline auto to() {
+  return operation([](auto &&coll) {
+    C<remove_cr_t<decltype(*std::begin(coll))>> result{};
+    std::copy(std::begin(coll), std::end(coll), std::back_inserter(result));
+    return result;
+  });
+}
+
+template<template<typename...> typename R=std::vector, typename C, typename Fn>
+constexpr inline auto zip(const C &other, Fn fn) {
+  return operation([other, fn](auto &&coll) {
+    R<remove_cr_t<decltype(fn(*std::begin(coll), *std::begin(other)))>> result{};
+    auto &&x = std::begin(coll);
+    auto &&y = std::begin(other);
+    for (; x != std::end(coll) && y != std::end(other); ++x, ++y) {
+      result.push_back(fn(*x, *y));
+    }
+    return result;
+  });
+}
+
+template<template<typename...> typename R=std::vector, typename C>
+constexpr inline auto zip(const C &other) {
+  return zip<R>(other, [](auto &&x, auto &&y) { return std::make_pair(x, y); });
+}
+
 template<typename Pred>
 constexpr inline auto filter(Pred pred) {
-  return operation([&pred](auto &&coll) {
-    std::remove_reference_t<decltype(coll)> result{coll};
-    auto &&it = std::remove_if(std::begin(result), std::end(result), [&pred](auto &&it) { return !pred(it); });
+  return operation([pred](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{coll};
+    auto &&it = std::remove_if(std::begin(result), std::end(result), [pred](auto &&it) { return !pred(it); });
     result.erase(it, std::end(result));
     return result;
+  });
+}
+
+constexpr inline auto reverse() {
+  return operation([](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{coll};
+    std::reverse(std::begin(result), std::end(result));
+    return result;
+  });
+}
+
+constexpr inline auto sort() {
+  return operation([](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{coll};
+    std::sort(std::begin(result), std::end(result));
+    return result;
+  });
+}
+
+template<typename Comp>
+constexpr inline auto sort(Comp comp) {
+  return operation([comp](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{coll};
+    std::sort(std::begin(result), std::end(result), comp);
+    return result;
+  });
+}
+
+template<typename Size>
+constexpr inline auto take(Size n) {
+  return operation([n](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{std::begin(coll), std::begin(coll) + n};
+    return result;
+  });
+}
+
+template<typename Size>
+constexpr inline auto drop(Size n) {
+  return operation([n](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{std::begin(coll) + n, std::end(coll)};
+    return result;
+  });
+}
+
+template<typename Val, typename BinOp>
+constexpr inline auto fold(Val initial, BinOp op) {
+  return operation([initial, op](auto &&coll) {
+    return std::accumulate(std::begin(coll), std::end(coll), initial, op);
+  });
+}
+
+template<typename BinOp>
+constexpr inline auto reduce(BinOp op) {
+  return operation([op](auto &&coll) {
+    auto result = *std::begin(coll);
+    return std::accumulate(++std::begin(coll), std::end(coll), result, op);
   });
 }
 
@@ -99,6 +184,14 @@ constexpr inline auto print(std::ostream &out = std::cout) {
       out << ", " << *it;
     }
     out << ']';
+    return coll;
+  });
+}
+
+constexpr inline auto println(std::ostream &out = std::cout) {
+  return operation([&out](auto &&coll) {
+    print(out)(coll);
+    out << '\n';
     return coll;
   });
 }

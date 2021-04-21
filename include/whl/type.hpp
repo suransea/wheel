@@ -14,20 +14,31 @@
 // limitations under the License.
 //
 
-#ifndef WHEEL_WHL_HPP
-#define WHEEL_WHL_HPP
+#ifndef WHEEL_WHL_TYPE_HPP
+#define WHEEL_WHL_TYPE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <whl/collection.hpp>
-#include <whl/common.hpp>
-#include <whl/function.hpp>
-#include <whl/literals.hpp>
-#include <whl/operation.hpp>
-#include <whl/option.hpp>
-#include <whl/string.hpp>
-#include <whl/type.hpp>
+#include <type_traits>
 
-#endif // WHEEL_WHL_HPP
+namespace whl {
+
+template<typename...>
+struct replace_first {};
+
+template<typename To, template<typename...> typename C, typename Orig, typename...Args>
+struct replace_first<To, C<Orig, Args...>> {
+  using type = C<To, Args...>;
+};
+
+template<typename...Args>
+using replace_first_t = typename replace_first<Args...>::type;
+
+template<typename T>
+using remove_cr_t = std::remove_const_t<std::remove_reference_t<T>>;
+
+} // namespace whl
+
+#endif // WHEEL_WHL_TYPE_HPP
