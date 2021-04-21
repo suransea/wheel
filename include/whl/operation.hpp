@@ -18,13 +18,13 @@
 #define WHEEL_WHL_OPERATION_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
+#pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <functional>
 #include <algorithm>
-#include <numeric>
+#include <functional>
 #include <iostream>
+#include <numeric>
 
 #include "whl/collection.hpp"
 #include "whl/type.hpp"
@@ -59,7 +59,7 @@ constexpr inline auto tap_indexed(Fn fn) {
   });
 }
 
-template<template<typename...> typename C=std::vector, typename Fn>
+template<template<typename...> typename C = std::vector, typename Fn>
 constexpr inline auto map(Fn fn) {
   return operation([fn](auto &&coll) {
     C<remove_cr_t<decltype(fn(*std::begin(coll)))>> result{};
@@ -68,7 +68,7 @@ constexpr inline auto map(Fn fn) {
   });
 }
 
-template<template<typename...> typename C=std::vector, typename Fn>
+template<template<typename...> typename C = std::vector, typename Fn>
 constexpr inline auto flat_map(Fn fn) {
   return operation([fn](auto &&coll) {
     C<remove_cr_t<decltype(*std::begin(fn(*std::begin(coll))))>> result{};
@@ -89,7 +89,7 @@ constexpr inline auto to() {
   });
 }
 
-template<template<typename...> typename R=std::vector, typename C, typename Fn>
+template<template<typename...> typename R = std::vector, typename C, typename Fn>
 constexpr inline auto zip(const C &other, Fn fn) {
   return operation([other, fn](auto &&coll) {
     R<remove_cr_t<decltype(fn(*std::begin(coll), *std::begin(other)))>> result{};
@@ -102,7 +102,7 @@ constexpr inline auto zip(const C &other, Fn fn) {
   });
 }
 
-template<template<typename...> typename R=std::vector, typename C>
+template<template<typename...> typename R = std::vector, typename C>
 constexpr inline auto zip(const C &other) {
   return zip<R>(other, [](auto &&x, auto &&y) { return std::make_pair(x, y); });
 }
@@ -170,6 +170,32 @@ constexpr inline auto reduce(BinOp op) {
   return operation([op](auto &&coll) {
     auto result = *std::begin(coll);
     return std::accumulate(++std::begin(coll), std::end(coll), result, op);
+  });
+}
+
+constexpr inline auto min() {
+  return operation([](auto &&coll) {
+    return *std::min_element(std::begin(coll), std::end(coll));
+  });
+}
+
+template<typename Comp>
+constexpr inline auto min(Comp comp) {
+  return operation([comp](auto &&coll) {
+    return *std::min_element(std::begin(coll), std::end(coll), comp);
+  });
+}
+
+constexpr inline auto max() {
+  return operation([](auto &&coll) {
+    return *std::max_element(std::begin(coll), std::end(coll));
+  });
+}
+
+template<typename Comp>
+constexpr inline auto max(Comp comp) {
+  return operation([comp](auto &&coll) {
+    return *std::max_element(std::begin(coll), std::end(coll), comp);
   });
 }
 

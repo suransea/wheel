@@ -38,7 +38,7 @@ CompactNamespaces: false
 ContinuationIndentWidth: 4
 IndentCaseLabels: true
 IndentPPDirectives: None
-IndentWidth: 4
+IndentWidth: 2
 KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
@@ -56,11 +56,11 @@ SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true
 SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 2
+SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-TabWidth: 4
+TabWidth: 2
 UseTab: Never

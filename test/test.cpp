@@ -1,12 +1,13 @@
-#include "whl.hpp"
-#include <iostream>
-#include <utility>
-#include <vector>
-#include <list>
-#include <optional>
 #include <algorithm>
 #include <array>
 #include <deque>
+#include <iostream>
+#include <list>
+#include <optional>
+#include <utility>
+#include <vector>
+
+#include "whl.hpp"
 
 int main() {
   {
@@ -16,7 +17,7 @@ int main() {
   }
 
   std::vector vec = {0, 4, 5};
-  for (auto[i, v] : whl::with_index(vec)) {
+  for (auto [i, v] : whl::with_index(vec)) {
     whl::println(i, ": ", v);
   }
 
@@ -46,8 +47,7 @@ int main() {
       whl::str::join(whl::str::split(str.begin(), str.end(), "_"), ","), "\n",
       whl::str::join(whl::str::split("int float double", "o"), ','), "\n",
       whl::str::join(whl::str::split<std::list<std::string>>("int float double", "t"), ","), "\n",
-      whl::str::join(whl::str::split<std::deque<std::string>>("int float double", " "), "__")
-  );
+      whl::str::join(whl::str::split<std::deque<std::string>>("int float double", " "), "__"));
   std::vector<const char *> v = {"(", "_", ")"};
   whl::println(whl::str::join(v, "O"));
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
