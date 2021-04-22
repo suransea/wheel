@@ -27,8 +27,10 @@
 #include <functional>
 #include <iostream>
 #include <numeric>
+#include <string>
 
 #include "whl/collection.hpp"
+#include "whl/string.hpp"
 #include "whl/type.hpp"
 
 namespace whl::op {
@@ -173,6 +175,13 @@ constexpr inline auto reduce(BinOp op) {
     assert(std::size(coll) > 0);
     auto result = *std::begin(coll);
     return std::accumulate(++std::begin(coll), std::end(coll), result, op);
+  });
+}
+
+template<typename R = std::string, typename Dlm>
+constexpr inline auto join(const Dlm &delimiter) {
+  return operation([delimiter](auto &&coll) {
+    return str::join<R>(coll, delimiter);
   });
 }
 

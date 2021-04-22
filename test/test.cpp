@@ -90,6 +90,8 @@ int main() {
   whl::println(std::vector{1, 3, 5, 7} | whl::op::reduce(whl::func::minus));
   whl::println(std::vector{2, 4, 6, 8} | whl::op::fold(2, whl::func::multiply));
 
+  whl::println(whl::str::join(std::array<const char*, 0>{}, '|'));
+
   whl::str::split("int float double", " ") | whl::op::print();
   return 0;
 }
