@@ -22,12 +22,18 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <numeric>
+#include <random>
+#include <set>
 #include <string>
+#include <tuple>
+#include <utility>
 
 #include "whl/collection.hpp"
 #include "whl/string.hpp"
@@ -84,6 +90,11 @@ constexpr inline auto flat_map(Fn fn) {
   });
 }
 
+template<template<typename...> typename C = std::vector>
+constexpr inline auto flatten() {
+  return flat_map<C>(func::identity);
+}
+
 template<template<typename...> typename C>
 constexpr inline auto to() {
   return operation([](auto &&coll) {
@@ -111,6 +122,19 @@ constexpr inline auto zip(const C &other) {
   return zip<R>(other, [](auto &&x, auto &&y) { return std::make_pair(x, y); });
 }
 
+template<template<typename...> typename R1 = std::vector, template<typename...> typename R2 = R1>
+constexpr inline auto unzip() {
+  return operation([](auto &&coll) {
+    R1<remove_cr_t<decltype(std::get<0>(*std::begin(coll)))>> x{};
+    R2<remove_cr_t<decltype(std::get<1>(*std::begin(coll)))>> y{};
+    for (auto &&it : coll) {
+      x.push_back(std::get<0>(it));
+      y.push_back(std::get<1>(it));
+    }
+    return std::make_pair(x, y);
+  });
+}
+
 template<typename Pred>
 constexpr inline auto filter(Pred pred) {
   return operation([pred](auto &&coll) {
@@ -119,6 +143,24 @@ constexpr inline auto filter(Pred pred) {
     result.erase(it, std::end(result));
     return result;
   });
+}
+
+template<typename Eq>
+constexpr inline auto distinct(Eq eq) {
+  return operation([eq](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{};
+    std::set<remove_cr_t<decltype(*std::begin(coll))>> set{};
+    for (auto &&it : coll) {
+      if (set.insert(it).second) {
+        result.push_back(it);
+      }
+    }
+    return result;
+  });
+}
+
+constexpr inline auto distinct() {
+  return distinct(func::equal);
 }
 
 constexpr inline auto reverse() {
@@ -142,6 +184,15 @@ constexpr inline auto sort(Comp comp) {
   return operation([comp](auto &&coll) {
     remove_cr_t<decltype(coll)> result{coll};
     std::sort(std::begin(result), std::end(result), comp);
+    return result;
+  });
+}
+
+constexpr inline auto shuffle() {
+  return operation([](auto &&coll) {
+    remove_cr_t<decltype(coll)> result{coll};
+    auto &&time = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(std::begin(result), std::end(result), std::default_random_engine(time));
     return result;
   });
 }
@@ -234,6 +285,27 @@ template<typename Pred>
 constexpr inline auto count(Pred pred) {
   return operation([pred](auto &&coll) {
     return std::count_if(std::begin(coll), std::end(coll), pred);
+  });
+}
+
+template<typename Pred>
+constexpr inline auto all(Pred pred) {
+  return operation([pred](auto &&coll) {
+    return std::all_of(std::begin(coll), std::end(coll), pred);
+  });
+}
+
+template<typename Pred>
+constexpr inline auto any(Pred pred) {
+  return operation([pred](auto &&coll) {
+    return std::any_of(std::begin(coll), std::end(coll), pred);
+  });
+}
+
+template<typename Pred>
+constexpr inline auto none(Pred pred) {
+  return operation([pred](auto &&coll) {
+    return std::none_of(std::begin(coll), std::end(coll), pred);
   });
 }
 

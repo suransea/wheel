@@ -65,16 +65,20 @@ int main() {
       | whl::op::println()
       | whl::op::sort()
       | whl::op::println()
+      | whl::op::shuffle()
       | whl::op::filter(whl::func::not_equal_with("bb"))
       | whl::op::println()
-      | whl::op::flat_map(whl::func::identity)
+      | whl::op::flat_map([](auto &&it) { return it + "-"; })
       | whl::op::println()
+      | whl::op::distinct()
       | whl::op::to<std::deque>()
+      | whl::op::println()
       | whl::op::map([](auto &&it) { return static_cast<int32_t>(it); })
       | whl::op::println()
       | whl::op::chunk(3)
       | whl::op::tap([](auto &&it) { it | whl::op::print(); })
-      | whl::op::flat_map(whl::func::identity)
+      | whl::op::flatten()
+      | whl::op::println()
       | whl::op::map([](auto &&it) { return std::to_string(it); })
       | whl::op::sum<std::string>();
   whl::println(val);
@@ -89,6 +93,11 @@ int main() {
 
   whl::println(std::vector{1, 3, 5, 7} | whl::op::reduce(whl::func::minus));
   whl::println(std::vector{2, 4, 6, 8} | whl::op::fold(2, whl::func::multiply));
+  whl::println(std::vector{1, 2, 3, 4} | whl::op::all(whl::func::great_than(0)) ? "true" : "false");
+
+  auto &&pair = std::vector{"a", "b", "c"} | whl::op::zip(std::vector{0, 1, 2}) | whl::op::unzip();
+  pair.first | whl::op::println();
+  pair.second | whl::op::println();
 
   whl::str::split("int float double", " ") | whl::op::print();
   return 0;
