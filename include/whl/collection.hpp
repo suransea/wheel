@@ -18,19 +18,19 @@
 #define WHEEL_WHL_COLLECTION_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
+#pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <utility>
-#include <iterator>
 #include <cctype>
+#include <iterator>
+#include <utility>
 
-#include "whl/literals.hpp"
 #include "whl/function.hpp"
+#include "whl/literals.hpp"
 
 namespace whl {
 
-template<typename Size=std::size_t, typename Iter, typename Fn>
+template<typename Size = std::size_t, typename Iter, typename Fn>
 inline void for_each_indexed(Iter first, Iter last, Fn fn) {
   for (Size i{}; first != last; ++first, ++i) {
     fn(i, *first);

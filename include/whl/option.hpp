@@ -18,7 +18,7 @@
 #define WHEEL_WHL_OPTION_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
+#pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 namespace whl {
@@ -27,15 +27,14 @@ template<typename T>
 struct option {
   using value_type = T;
 
-private:
+  private:
   bool some;
   union {
     unsigned char null_placeholder{};
     value_type val;
   };
 
-public:
-
+  public:
   constexpr option() : some(false) {}
 
   constexpr explicit option(T &&val) : val(val), some(true) {}

@@ -73,28 +73,44 @@ constexpr inline auto empty_consumer = [](auto &&x) {};
 constexpr inline auto do_nothing = []() {};
 
 template<typename Pred>
-constexpr inline auto not_pred(Pred pred) { return [pred]() { return !pred(); }; }
+constexpr inline auto not_pred(Pred pred) {
+  return [pred]() { return !pred(); };
+}
 
 template<typename Val>
-constexpr inline auto supply(Val val) { return [val]() { return val; }; }
+constexpr inline auto supply(Val val) {
+  return [val]() { return val; };
+}
 
 template<typename Val>
-constexpr inline auto equal_with(Val val) { return [val](auto &&x) { return x == val; }; }
+constexpr inline auto equal_with(Val val) {
+  return [val](auto &&x) { return x == val; };
+}
 
 template<typename Val>
-constexpr inline auto not_equal_with(Val val) { return [val](auto &&x) { return x != val; }; }
+constexpr inline auto not_equal_with(Val val) {
+  return [val](auto &&x) { return x != val; };
+}
 
 template<typename Val>
-constexpr inline auto great_than(Val val) { return [val](auto &&x) { return x > val; }; }
+constexpr inline auto great_than(Val val) {
+  return [val](auto &&x) { return x > val; };
+}
 
 template<typename Val>
-constexpr inline auto less_than(Val val) { return [val](auto &&x) { return x < val; }; }
+constexpr inline auto less_than(Val val) {
+  return [val](auto &&x) { return x < val; };
+}
 
 template<typename Val>
-constexpr inline auto great_equal_than(Val val) { return [val](auto &&x) { return x >= val; }; }
+constexpr inline auto great_equal_than(Val val) {
+  return [val](auto &&x) { return x >= val; };
+}
 
 template<typename Val>
-constexpr inline auto less_equal_than(Val val) { return [val](auto &&x) { return x <= val; }; }
+constexpr inline auto less_equal_than(Val val) {
+  return [val](auto &&x) { return x <= val; };
+}
 
 } // namespace whl::func
 

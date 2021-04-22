@@ -18,7 +18,7 @@
 #define WHEEL_WHL_TYPE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
+#pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <type_traits>
@@ -28,12 +28,12 @@ namespace whl {
 template<typename...>
 struct replace_first {};
 
-template<typename To, template<typename...> typename C, typename Orig, typename...Args>
+template<typename To, template<typename...> typename C, typename Orig, typename... Args>
 struct replace_first<To, C<Orig, Args...>> {
   using type = C<To, Args...>;
 };
 
-template<typename...Args>
+template<typename... Args>
 using replace_first_t = typename replace_first<Args...>::type;
 
 template<typename T>

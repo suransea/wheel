@@ -18,7 +18,7 @@
 #define WHEEL_WHL_COMMON_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-# pragma once
+#pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <iostream>
@@ -30,7 +30,7 @@ inline void print(T arg) {
   std::cout << arg;
 }
 
-template<typename T, typename ...Args>
+template<typename T, typename... Args>
 inline void print(T arg, Args... args) {
   std::cout << arg;
   print(args...);
@@ -40,7 +40,7 @@ inline void println() {
   std::cout << '\n';
 }
 
-template<typename T, typename ...Args>
+template<typename T, typename... Args>
 inline void println(T arg, Args... args) {
   std::cout << arg;
   println(args...);
