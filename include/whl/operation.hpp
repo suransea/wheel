@@ -22,6 +22,8 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <algorithm>
+#include <cassert>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <numeric>
@@ -168,8 +170,22 @@ constexpr inline auto fold(Val initial, BinOp op) {
 template<typename BinOp>
 constexpr inline auto reduce(BinOp op) {
   return operation([op](auto &&coll) {
+    assert(std::size(coll) > 0);
     auto result = *std::begin(coll);
     return std::accumulate(++std::begin(coll), std::end(coll), result, op);
+  });
+}
+
+template<typename T = std::int32_t>
+constexpr inline auto sum() {
+  T zero{};
+  return fold(zero, func::plus);
+}
+
+template<typename F = std::double_t>
+constexpr inline auto average() {
+  return operation([](auto &&coll) {
+    return sum<F>()(coll) / static_cast<F>(std::size(coll));
   });
 }
 
@@ -196,6 +212,49 @@ template<typename Comp>
 constexpr inline auto max(Comp comp) {
   return operation([comp](auto &&coll) {
     return *std::max_element(std::begin(coll), std::end(coll), comp);
+  });
+}
+
+constexpr inline auto count() {
+  return operation([](auto &&coll) {
+    return std::size(coll);
+  });
+}
+
+template<typename Pred>
+constexpr inline auto count(Pred pred) {
+  return operation([pred](auto &&coll) {
+    return std::count_if(std::begin(coll), std::end(coll), pred);
+  });
+}
+
+template<template<typename...> typename R = std::vector, typename C>
+constexpr inline auto concat(const C &other) {
+  return operation([other](auto &&coll) {
+    R<remove_cr_t<decltype(*std::begin(coll))>> result{coll};
+    std::copy(std::begin(other), std::end(other), std::back_inserter(result));
+    return result;
+  });
+}
+
+template<template<typename...> typename R = std::vector, template<typename...> typename Blk = R, typename Size>
+constexpr inline auto chunk(Size n) {
+  assert(n > 0);
+  return operation([n](auto &&coll) {
+    R<Blk<remove_cr_t<decltype(*std::begin(coll))>>> result{};
+    Blk<remove_cr_t<decltype(*std::begin(coll))>> block{};
+    for (auto &&[i, v] : with_index(coll)) {
+      block.push_back(v);
+      if (i == std::size(coll) - 1) {
+        result.push_back(block);
+        return result;
+      }
+      if ((i + 1) % n == 0) {
+        result.push_back(block);
+        block = {};
+      }
+    }
+    return result;
   });
 }
 

@@ -96,6 +96,6 @@ constexpr inline auto great_equal_than(Val val) { return [val](auto &&x) { retur
 template<typename Val>
 constexpr inline auto less_equal_than(Val val) { return [val](auto &&x) { return x <= val; }; }
 
-} // namespace whl
+} // namespace whl::func
 
 #endif // WHEEL_WHL_FUNCTION_HPP
