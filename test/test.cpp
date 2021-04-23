@@ -43,17 +43,17 @@ int main() {
   });
   whl::println();
 
-  whl::println(
-      whl::str::join(whl::str::split(str.begin(), str.end(), "_"), ","), "\n",
-      whl::str::join(whl::str::split("int float double", "o"), ','), "\n",
-      whl::str::join(whl::str::split<std::list<std::string>>("int float double", "t"), ","), "\n",
-      whl::str::join(whl::str::split<std::deque<std::string>>("int float double", " "), "__"));
+  whl::println(whl::str::split(str.begin(), str.end(), "_"));
+  whl::println(whl::str::split("int float double", "o"));
+  whl::println(whl::str::split<std::list<std::string>>("int float double", "t"));
+  whl::println(whl::str::split<std::deque<std::string>>("int float double", " "));
+
   std::vector<const char *> v = {"(", "_", ")"};
   whl::println(whl::str::join(v, "O"));
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
   whl::println(whl::str::join(std::array{"a", "b", "c"}, "-"));
 
-  auto &&val = std::vector<std::string>{"aa", "bb", "cc", "dd", "ee", "ff", "gg"}
+  std::vector<std::string>{"aa", "bb", "cc", "dd", "ee", "ff", "gg"}
       | whl::op::tap([](auto &&it) { whl::print(it, ' '); })
       | whl::op::tap_indexed([](auto &&i, auto &&v) { whl::print(i, ' ', v, ' '); })
       | whl::op::take(6)
@@ -76,29 +76,39 @@ int main() {
       | whl::op::map([](auto &&it) { return static_cast<int32_t>(it); })
       | whl::op::println()
       | whl::op::chunk(3)
-      | whl::op::tap([](auto &&it) { it | whl::op::print(); })
+      | whl::op::println()
       | whl::op::flatten()
       | whl::op::println()
       | whl::op::map([](auto &&it) { return std::to_string(it); })
-      | whl::op::sum<std::string>();
-  whl::println(val);
+      | whl::op::sum<std::string>()
+      | whl::op::println();
 
-  auto &&average = std::vector{"a", "b", "c"}
+  std::vector{"a", "b", "c"}
       | whl::op::zip(std::vector{10, 100, 1000})
-      | whl::op::tap([](auto &&it) { whl::println(it.first, it.second); })
+      | whl::op::println()
       | whl::op::map([](auto &&it) { return std::string(it.first) + std::to_string(it.second); })
       | whl::op::map([](auto &&it) { return it.length(); })
-      | whl::op::average();
-  whl::println(average);
+      | whl::op::average()
+      | whl::op::println();
 
-  whl::println(std::vector{1, 3, 5, 7} | whl::op::reduce(whl::func::minus));
-  whl::println(std::vector{2, 4, 6, 8} | whl::op::fold(2, whl::func::multiply));
-  whl::println(std::vector{1, 2, 3, 4} | whl::op::all(whl::func::great_than(0)) ? "true" : "false");
+  std::cout << std::boolalpha;
+  std::vector{1, 3, 5, 7}
+      | whl::op::reduce(whl::func::minus)
+      | whl::op::println();
+  std::vector{2, 4, 6, 8}
+      | whl::op::fold(2, whl::func::multiply)
+      | whl::op::println();
+  std::vector{1, 2, 3, 4}
+      | whl::op::all(whl::func::great_than(0))
+      | whl::op::println();
 
-  auto &&pair = std::vector{"a", "b", "c"} | whl::op::zip(std::vector{0, 1, 2}) | whl::op::unzip();
-  pair.first | whl::op::println();
-  pair.second | whl::op::println();
+  std::vector{"a", "b", "c"}
+      | whl::op::zip(std::vector{0, 1, 2})
+      | whl::op::unzip()
+      | whl::op::println();
 
-  whl::str::split("int float double", " ") | whl::op::print();
+  whl::str::split("int float double", " ") | whl::op::println();
+  whl::println(std::vector{std::vector{0, 1}, std::vector{2, 3}, std::vector{4, 5}});
+  whl::println(std::make_tuple(1, 'c', "str", std::make_pair(1, 2), std::make_tuple("a", 'b', 'c'), std::array{1, 2, 3, 4}));
   return 0;
 }

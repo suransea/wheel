@@ -22,11 +22,11 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include <whl/collection.hpp>
-#include <whl/common.hpp>
 #include <whl/function.hpp>
 #include <whl/literals.hpp>
 #include <whl/operation.hpp>
 #include <whl/option.hpp>
+#include <whl/print.hpp>
 #include <whl/string.hpp>
 #include <whl/type.hpp>
 

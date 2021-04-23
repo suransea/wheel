@@ -36,6 +36,7 @@
 #include <utility>
 
 #include "whl/collection.hpp"
+#include "whl/print.hpp"
 #include "whl/string.hpp"
 #include "whl/type.hpp"
 
@@ -47,9 +48,9 @@ struct operation : Fn {
 
   constexpr explicit operation(Fn fn) : Fn(fn) {}
 
-  template<typename C>
-  friend constexpr auto operator|(C coll, operation<Fn> op) {
-    return op(coll);
+  template<typename T>
+  friend constexpr auto operator|(T val, operation<Fn> op) {
+    return op(val);
   }
 };
 
@@ -345,26 +346,17 @@ constexpr inline auto chunk(Size n) {
   });
 }
 
-constexpr inline auto print(std::ostream &out = std::cout) {
-  return operation([&out](auto &&coll) {
-    if (std::size(coll) == 0) {
-      out << "[]";
-      return coll;
-    }
-    out << '[' << *std::begin(coll);
-    for (auto it = ++std::begin(coll); it != std::end(coll); ++it) {
-      out << ", " << *it;
-    }
-    out << ']';
-    return coll;
+constexpr inline auto print() {
+  return operation([](auto &&val) {
+    whl::print(val);
+    return val;
   });
 }
 
-constexpr inline auto println(std::ostream &out = std::cout) {
-  return operation([&out](auto &&coll) {
-    print(out)(coll);
-    out << '\n';
-    return coll;
+constexpr inline auto println() {
+  return operation([](auto &&val) {
+    whl::println(val);
+    return val;
   });
 }
 
