@@ -122,17 +122,23 @@ constexpr inline auto zip(const C &other) {
   return zip<R>(other, [](auto &&x, auto &&y) { return std::make_pair(x, y); });
 }
 
-template<template<typename...> typename R1 = std::vector, template<typename...> typename R2 = R1>
-constexpr inline auto unzip() {
-  return operation([](auto &&coll) {
-    R1<remove_cr_t<decltype(std::get<0>(*std::begin(coll)))>> x{};
-    R2<remove_cr_t<decltype(std::get<1>(*std::begin(coll)))>> y{};
+template<template<typename...> typename R1 = std::vector, template<typename...> typename R2 = R1, typename Fn>
+constexpr inline auto unzip(Fn fn) {
+  return operation([fn](auto &&coll) {
+    R1<remove_cr_t<decltype(std::get<0>(fn(*std::begin(coll))))>> x{};
+    R2<remove_cr_t<decltype(std::get<1>(fn(*std::begin(coll))))>> y{};
     for (auto &&it : coll) {
-      x.push_back(std::get<0>(it));
-      y.push_back(std::get<1>(it));
+      auto &&mapped = fn(it);
+      x.push_back(std::get<0>(mapped));
+      y.push_back(std::get<1>(mapped));
     }
     return std::make_pair(x, y);
   });
+}
+
+template<template<typename...> typename R1 = std::vector, template<typename...> typename R2 = R1>
+constexpr inline auto unzip() {
+  return unzip<R1, R2>(func::identity);
 }
 
 template<typename Pred>
