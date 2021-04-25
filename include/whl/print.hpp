@@ -45,11 +45,11 @@ inline void print_by_iter(Iter first, Iter last);
 
 } // namespace detail
 
-template<typename T, typename... Args>
-inline void print(T arg, Args... args);
+template<typename... Args>
+inline void print(Args... args);
 
 template<typename T>
-inline auto print(T arg) -> decltype(std::cout << std::declval<T>(), void()) {
+inline auto print(T arg) -> decltype(std::cout << arg, void()) {
   detail::print_impl(arg);
 }
 
@@ -72,10 +72,9 @@ inline void print(const std::string &str) {
   detail::print_impl(str);
 }
 
-template<typename T, typename... Args>
-inline void print(T arg, Args... args) {
-  print(arg);
-  print(args...);
+template<typename... Args>
+inline void print(Args... args) {
+  (..., print(args));
 }
 
 template<typename... Args>
@@ -92,7 +91,7 @@ inline void println() {
 template<typename Tuple, size_t... I>
 inline void detail::print_tuple(const Tuple &tuple, std::index_sequence<I...>) {
   print_impl('(');
-  (..., (print(I ? ", " : "", std::get<I>(tuple))));
+  (..., print(I ? ", " : "", std::get<I>(tuple)));
   print_impl(')');
 }
 
