@@ -21,7 +21,7 @@
 #pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <whl/collection.hpp>
+#include <whl/container.hpp>
 #include <whl/function.hpp>
 #include <whl/literals.hpp>
 #include <whl/operation.hpp>

@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-#ifndef WHEEL_WHL_COLLECTION_HPP
-#define WHEEL_WHL_COLLECTION_HPP
+#ifndef WHEEL_WHL_CONTAINER_HPP
+#define WHEEL_WHL_CONTAINER_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once
@@ -38,18 +38,18 @@ inline void for_each_indexed(Iter first, Iter last, Fn fn) {
 }
 
 template<typename C, typename Fn>
-inline void for_each_indexed(const C &coll, Fn fn) {
-  for_each_indexed<decltype(std::size(coll))>(std::begin(coll), std::end(coll), fn);
+inline void for_each_indexed(const C &cont, Fn fn) {
+  for_each_indexed<decltype(std::size(cont))>(std::begin(cont), std::end(cont), fn);
 }
 
 template<typename C>
 struct with_index {
-  const C &coll;
+  const C &cont;
 
   template<typename Iter>
   struct iter_indexed {
     Iter it;
-    decltype(std::size(coll)) index{};
+    decltype(std::size(cont)) index{};
 
     constexpr explicit iter_indexed(Iter it) : it(it) {}
 
@@ -68,17 +68,17 @@ struct with_index {
     }
   };
 
-  constexpr explicit with_index(const C &coll) : coll(coll) {}
+  constexpr explicit with_index(const C &cont) : cont(cont) {}
 
   constexpr auto begin() {
-    return iter_indexed<decltype(std::begin(coll))>(std::begin(coll));
+    return iter_indexed<decltype(std::begin(cont))>(std::begin(cont));
   }
 
   constexpr auto end() {
-    return iter_indexed<decltype(std::end(coll))>(std::end(coll));
+    return iter_indexed<decltype(std::end(cont))>(std::end(cont));
   }
 };
 
 } // namespace whl
 
-#endif // WHEEL_WHL_COLLECTION_HPP
+#endif // WHEEL_WHL_CONTAINER_HPP

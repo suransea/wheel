@@ -54,8 +54,8 @@ constexpr inline Str join(Iter first, Iter last, const Dlm &delimiter) {
 }
 
 template<typename Str = std::string, typename C, typename Dlm>
-constexpr inline Str join(const C &coll, const Dlm &delimiter) {
-  return join<Str>(std::begin(coll), std::end(coll), delimiter);
+constexpr inline Str join(const C &cont, const Dlm &delimiter) {
+  return join<Str>(std::begin(cont), std::end(cont), delimiter);
 }
 
 template<typename Iter>
