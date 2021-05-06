@@ -79,6 +79,75 @@ struct with_index {
   }
 };
 
+template<typename T>
+struct array {
+  public:
+  using value_type = T;
+  using reference = T &;
+  using const_reference = const T &;
+  using pointer = T *;
+  using const_pointor = const T *;
+  using size_type = size_t;
+  using difference_type = std::ptrdiff_t;
+  using iterator = pointer;
+
+  private:
+  pointer ptr;
+  size_type size_;
+
+  public:
+  array() : ptr(nullptr), size_(0ul) {}
+
+  array(pointer ptr, size_type size) : ptr(ptr), size_(size) {}
+
+  array(size_type size) : array(new value_type[size](), size) {}
+
+  array(const array &arr) : array(arr.size_) {
+    std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
+  }
+
+  array(array &&arr) : ptr(arr.ptr), size_(arr.size_) {
+    arr.ptr = nullptr;
+    arr.size_ = 0ul;
+  }
+
+  array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]()), size_(il.size()) {
+    for_each_indexed(il, [this](auto &&i, auto &&v) {
+      ptr[i] = v;
+    });
+  }
+
+  ~array() {
+    delete[] ptr;
+  }
+
+  array &operator=(const array &arr) {
+    if (size_ < arr.size_) {
+      delete[] ptr;
+      ptr = new value_type[arr.size_]();
+    }
+    size_ = arr.size_;
+    std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
+    return *this;
+  }
+
+  reference operator[](size_type i) {
+    return ptr[i];
+  }
+
+  size_type size() const noexcept {
+    return size_;
+  }
+
+  iterator begin() noexcept {
+    return ptr;
+  }
+
+  iterator end() noexcept {
+    return ptr + size_;
+  }
+};
+
 } // namespace whl
 
 #endif // WHEEL_WHL_CONTAINER_HPP
