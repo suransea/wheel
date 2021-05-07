@@ -86,32 +86,33 @@ struct array {
   using reference = T &;
   using const_reference = const T &;
   using pointer = T *;
-  using const_pointor = const T *;
-  using size_type = size_t;
+  using const_pointer = const T *;
+  using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using iterator = pointer;
+  using const_iterator = const iterator;
 
   private:
   pointer ptr;
   size_type size_;
 
   public:
-  array() : ptr(nullptr), size_(0ul) {}
+  array() : ptr(), size_() {}
 
   array(pointer ptr, size_type size) : ptr(ptr), size_(size) {}
 
-  array(size_type size) : array(new value_type[size](), size) {}
+  array(size_type size) : ptr(new value_type[size]()), size_(size) {}
 
   array(const array &arr) : array(arr.size_) {
     std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
   }
 
   array(array &&arr) : ptr(arr.ptr), size_(arr.size_) {
-    arr.ptr = nullptr;
-    arr.size_ = 0ul;
+    arr.ptr = pointer();
+    arr.size_ = size_type();
   }
 
-  array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]()), size_(il.size()) {
+  array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
     for_each_indexed(il, [this](auto &&i, auto &&v) {
       ptr[i] = v;
     });
@@ -124,7 +125,7 @@ struct array {
   array &operator=(const array &arr) {
     if (size_ < arr.size_) {
       delete[] ptr;
-      ptr = new value_type[arr.size_]();
+      ptr = new value_type[arr.size_];
     }
     size_ = arr.size_;
     std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
@@ -143,7 +144,15 @@ struct array {
     return ptr;
   }
 
+  const_iterator begin() const noexcept {
+    return ptr;
+  }
+
   iterator end() noexcept {
+    return ptr + size_;
+  }
+
+  const_iterator end() const noexcept {
     return ptr + size_;
   }
 };

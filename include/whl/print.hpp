@@ -33,7 +33,7 @@ namespace whl {
 namespace detail {
 
 template<typename T>
-inline void print_impl(T arg) {
+inline void print_impl(const T &arg) {
   std::cout << arg;
 }
 
@@ -46,10 +46,10 @@ inline void print_by_iter(Iter first, Iter last);
 } // namespace detail
 
 template<typename... Args>
-inline void print(Args... args);
+inline void print(const Args &...args);
 
 template<typename T>
-inline auto print(T arg) -> decltype(std::cout << arg, void()) {
+inline auto print(const T &arg) -> decltype(std::cout << arg, void()) {
   detail::print_impl(arg);
 }
 
@@ -64,7 +64,7 @@ inline void print(const std::tuple<Args...> &tuple) {
 }
 
 template<typename T>
-inline auto print(T arg) -> decltype(std::begin(arg), void()) {
+inline auto print(const T &arg) -> decltype(std::begin(arg), void()) {
   detail::print_by_iter(std::begin(arg), std::end(arg));
 }
 
@@ -72,13 +72,17 @@ inline void print(const std::string &str) {
   detail::print_impl(str);
 }
 
+inline void print(const char *str) {
+  detail::print_impl(str);
+}
+
 template<typename... Args>
-inline void print(Args... args) {
+inline void print(const Args &...args) {
   (..., print(args));
 }
 
 template<typename... Args>
-inline void println(Args... args) {
+inline void println(const Args &...args) {
   print(args...);
   println();
 }
