@@ -132,6 +132,15 @@ struct array {
     return *this;
   }
 
+  array &operator=(array &&arr) {
+    delete[] ptr;
+    ptr = arr.ptr;
+    size_ = arr.size_;
+    arr.ptr = pointer();
+    arr.size_ = size_type();
+    return *this;
+  }
+
   reference operator[](size_type i) {
     return ptr[i];
   }

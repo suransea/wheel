@@ -45,8 +45,8 @@ inline void print_by_iter(Iter first, Iter last);
 
 } // namespace detail
 
-template<typename... Args>
-inline void print(const Args &...args);
+template<typename T, typename U, typename... Args>
+inline void print(const T &x, const U &y, const Args &...args);
 
 template<typename T>
 inline auto print(const T &arg) -> decltype(std::cout << arg, void()) {
@@ -76,8 +76,10 @@ inline void print(const char *str) {
   detail::print_impl(str);
 }
 
-template<typename... Args>
-inline void print(const Args &...args) {
+template<typename T, typename U, typename... Args>
+inline void print(const T &x, const U &y, const Args &...args) {
+  print(x);
+  print(y);
   (..., print(args));
 }
 
