@@ -30,7 +30,6 @@
 #include <iostream>
 #include <numeric>
 #include <random>
-#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -156,12 +155,7 @@ template<typename Eq>
 constexpr inline auto distinct(Eq eq) {
   return operation([eq](auto &&cont) {
     remove_cr_t<decltype(cont)> result{};
-    std::set<remove_cr_t<decltype(*std::begin(cont))>> set{};
-    for (auto &&it : cont) {
-      if (set.insert(it).second) {
-        result.push_back(it);
-      }
-    }
+    std::unique_copy(std::begin(cont), std::end(cont), std::back_inserter(result), eq);
     return result;
   });
 }
