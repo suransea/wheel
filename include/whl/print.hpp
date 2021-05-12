@@ -30,56 +30,21 @@
 
 namespace whl {
 
-namespace detail {
+template<typename T, typename = void>
+struct printer {
+  void operator()(const T &arg) {
+    std::cout << arg;
+  }
+};
 
 template<typename T>
-inline void print_impl(const T &arg) {
-  std::cout << arg;
+inline void print(const T &arg) {
+  printer<T>()(arg);
 }
 
-template<typename Tuple, std::size_t... I>
-inline void print_tuple(const Tuple &tuple, std::index_sequence<I...>);
-
-template<typename Iter>
-inline void print_by_iter(Iter first, Iter last);
-
-} // namespace detail
-
-template<typename T, typename U, typename... Args>
-inline void print(const T &x, const U &y, const Args &...args);
-
-template<typename T>
-inline auto print(const T &arg) -> decltype(std::cout << arg, void()) {
-  detail::print_impl(arg);
-}
-
-template<typename T1, typename T2>
-inline void print(const std::pair<T1, T2> &pair) {
-  print('(', pair.first, ", ", pair.second, ')');
-}
-
-template<typename... Args>
-inline void print(const std::tuple<Args...> &tuple) {
-  detail::print_tuple(tuple, std::make_index_sequence<sizeof...(Args)>());
-}
-
-template<typename T>
-inline auto print(const T &arg) -> decltype(std::begin(arg), void()) {
-  detail::print_by_iter(std::begin(arg), std::end(arg));
-}
-
-inline void print(const std::string &str) {
-  detail::print_impl(str);
-}
-
-inline void print(const char *str) {
-  detail::print_impl(str);
-}
-
-template<typename T, typename U, typename... Args>
-inline void print(const T &x, const U &y, const Args &...args) {
-  print(x);
-  print(y);
+template<typename T, typename... Args>
+inline void print(const T &arg, const Args &...args) {
+  print(arg);
   (..., print(args));
 }
 
@@ -94,25 +59,64 @@ inline void println() {
   print('\n');
 }
 
+namespace detail {
+
 template<typename Tuple, size_t... I>
-inline void detail::print_tuple(const Tuple &tuple, std::index_sequence<I...>) {
-  print_impl('(');
+inline void print_tuple(const Tuple &tuple, std::index_sequence<I...>) {
+  print('(');
   (..., print(I ? ", " : "", std::get<I>(tuple)));
-  print_impl(')');
+  print(')');
 }
 
 template<typename Iter>
-inline void detail::print_by_iter(Iter first, Iter last) {
+inline void print_by_iter(Iter first, Iter last) {
   if (first == last) {
-    print_impl("[]");
+    print("[]");
     return;
   }
   print('[', *first);
   for (auto it = ++first; it != last; ++it) {
     print(", ", *it);
   }
-  print_impl(']');
+  print(']');
 }
+
+} // namespace whl::detail
+
+template<typename T1, typename T2>
+struct printer<std::pair<T1, T2>> {
+  void operator()(const std::pair<T1, T2> &pair) {
+    print('(', pair.first, ", ", pair.second, ')');
+  }
+};
+
+template<typename... Args>
+struct printer<std::tuple<Args...>> {
+  void operator()(const std::tuple<Args...> &tuple) {
+    detail::print_tuple(tuple, std::make_index_sequence<sizeof...(Args)>());
+  }
+};
+
+template<typename T>
+struct printer<T, decltype(std::begin(std::declval<T>()), void())> {
+  void operator()(const T &arg) {
+    detail::print_by_iter(std::begin(arg), std::end(arg));
+  }
+};
+
+template<>
+struct printer<std::string> {
+  void operator()(const std::string &str) {
+    std::cout << str;
+  }
+};
+
+template<>
+struct printer<const char *> {
+  void operator()(const char *str) {
+    std::cout << str;
+  }
+};
 
 } // namespace whl
 
