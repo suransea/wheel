@@ -18,7 +18,7 @@ int main() {
 
   std::vector vec = {0, 4, 5};
   for (auto [i, v] : whl::with_index(vec)) {
-    whl::println(i, ": ", v);
+    whl::printf("{}: {}\n", i, v);
   }
 
   whl::for_each_indexed(vec, [](auto &&i, auto &&val) {
@@ -39,7 +39,7 @@ int main() {
   whl::println(whl::str::toupper("str"));
   whl::println(whl::str::tolower(str.begin() + 1, str.end() - 1));
   whl::for_each_indexed(whl::str::toupper<std::vector<char>>(str.begin() + 1, str.end() - 1), [](auto &&i, auto &&v) {
-    whl::print(i, ',', v, ' ');
+    whl::printf("[{}, {}]", i, v);
   });
   whl::println();
 
@@ -91,7 +91,6 @@ int main() {
       | whl::op::average()
       | whl::op::println();
 
-  std::cout << std::boolalpha;
   std::vector{1, 3, 5, 7}
       | whl::op::reduce(whl::func::minus)
       | whl::op::println();

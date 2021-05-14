@@ -80,9 +80,9 @@ inline void tolower_inplace(Str &str) {
   tolower_inplace(std::begin(str), std::end(str));
 }
 
-template<typename Str_R = std::string, typename Str_In>
-constexpr inline Str_R toupper(const Str_In &str) {
-  Str_R result{str};
+template<typename Str = std::string, typename StrIn>
+constexpr inline Str toupper(const StrIn &str) {
+  Str result{str};
   toupper_inplace(result);
   return result;
 }
@@ -94,9 +94,9 @@ constexpr inline Str toupper(Iter first, Iter last) {
   return result;
 }
 
-template<typename Str_R = std::string, typename Str_In>
-constexpr inline Str_R tolower(const Str_In &str) {
-  Str_R result{str};
+template<typename Str = std::string, typename StrIn>
+constexpr inline Str tolower(const StrIn &str) {
+  Str result{str};
   tolower_inplace(result);
   return result;
 }
