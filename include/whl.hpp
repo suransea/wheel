@@ -25,8 +25,8 @@
 #include <whl/format.hpp>
 #include <whl/function.hpp>
 #include <whl/literals.hpp>
+#include <whl/meta.hpp>
 #include <whl/operation.hpp>
-#include <whl/option.hpp>
 #include <whl/pointer.hpp>
 #include <whl/print.hpp>
 #include <whl/string.hpp>

@@ -61,7 +61,7 @@ struct unique_arr {
   }
 
   unique_arr(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
-    for_each_indexed(il, [this](auto &&i, auto &&v) {
+    foreach_indexed(il, [this](auto &&i, auto &&v) {
       ptr[i] = v;
     });
   }
@@ -191,7 +191,7 @@ struct shared_arr {
   }
 
   shared_arr(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()), ref_count(new long(1)) {
-    for_each_indexed(il, [this](auto &&i, auto &&v) {
+    foreach_indexed(il, [this](auto &&i, auto &&v) {
       ptr[i] = v;
     });
   }

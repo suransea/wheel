@@ -28,34 +28,57 @@
 #include <string>
 #include <vector>
 
+#include "whl/operation.hpp"
+
 namespace whl::str {
 
-template<typename C = std::vector<std::string>, typename Iter, typename Regex>
-constexpr inline C split(Iter first, Iter last, const Regex &regex) {
-  std::basic_regex basic_regex(regex);
-  return C{std::regex_token_iterator(first, last, basic_regex, -1),
-           std::regex_token_iterator<decltype(first)>()};
-}
+template<typename Iter, typename Regex>
+struct split_sequence {
+  public:
+  using const_iterator = std::regex_token_iterator<Iter>;
+  using iterator = const_iterator;
+  using value_type = typename iterator::value_type;
+  using pointer = typename iterator::pointer;
+  using reference = typename iterator::reference;
+  using const_reference = const reference;
+  using const_pointer = const pointer;
+  using difference_type = typename iterator::difference_type;
 
-template<typename C = std::vector<std::string>, typename Str, typename Regex>
-constexpr inline C split(const Str &str, const Regex &regex) {
-  return split<C>(std::begin(str), std::end(str), regex);
-}
+  private:
+  Regex regex;
+  Iter first, last;
 
-template<typename Str = std::string, typename Iter, typename Dlm>
-constexpr inline Str join(Iter first, Iter last, const Dlm &delimiter) {
-  if (first == last) {
-    return Str{};
+  public:
+  split_sequence(Iter first, Iter last, const Regex &regex)
+      : regex(regex), first(first), last(last) {}
+
+  iterator begin() const {
+    return std::regex_token_iterator(first, last, regex, -1);
   }
-  Str result = *first;
-  return std::accumulate(++first, last, result, [&delimiter](auto &&x, auto &&y) {
-    return x + delimiter + y;
-  });
+
+  iterator end() const {
+    return std::regex_token_iterator<decltype(first)>();
+  }
+};
+
+template<typename Iter, typename Regex>
+constexpr inline auto split(Iter first, Iter last, const Regex &regex) {
+  return split_sequence(first, last, std::basic_regex(regex));
 }
 
-template<typename Str = std::string, typename C, typename Dlm>
-constexpr inline Str join(const C &cont, const Dlm &delimiter) {
-  return join<Str>(std::begin(cont), std::end(cont), delimiter);
+template<typename Str, typename Regex>
+constexpr inline auto split(const Str &str, const Regex &regex) {
+  return split(std::begin(str), std::end(str), regex);
+}
+
+template<typename CharT = char, typename Iter, typename Dlm>
+constexpr inline auto join(Iter first, Iter last, const Dlm &delimiter) {
+  return op::sequence(first, last) | op::join<CharT>(delimiter);
+}
+
+template<typename CharT = char, typename C, typename Dlm>
+constexpr inline auto join(const C &cont, const Dlm &delimiter) {
+  return cont | op::join<CharT>(delimiter);
 }
 
 template<typename Iter>
@@ -80,30 +103,30 @@ inline void tolower_inplace(Str &str) {
   tolower_inplace(std::begin(str), std::end(str));
 }
 
-template<typename Str = std::string, typename StrIn>
-constexpr inline Str toupper(const StrIn &str) {
-  Str result{str};
+template<typename Str>
+constexpr inline auto toupper(const Str &str) {
+  std::basic_string result(str);
   toupper_inplace(result);
   return result;
 }
 
-template<typename Str = std::string, typename Iter>
-constexpr inline Str toupper(Iter first, Iter last) {
-  Str result{first, last};
+template<typename Iter>
+constexpr inline auto toupper(Iter first, Iter last) {
+  std::basic_string result(first, last);
   toupper_inplace(result);
   return result;
 }
 
-template<typename Str = std::string, typename StrIn>
-constexpr inline Str tolower(const StrIn &str) {
-  Str result{str};
+template<typename Str>
+constexpr inline auto tolower(const Str &str) {
+  std::basic_string result(str);
   tolower_inplace(result);
   return result;
 }
 
-template<typename Str = std::string, typename Iter>
-constexpr inline Str tolower(Iter first, Iter last) {
-  Str result{first, last};
+template<typename Iter>
+constexpr inline auto tolower(Iter first, Iter last) {
+  std::basic_string result(first, last);
   tolower_inplace(result);
   return result;
 }

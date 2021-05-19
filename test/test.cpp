@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <optional>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -21,12 +22,12 @@ int main() {
     whl::printf("{}: {}\n", i, v);
   }
 
-  whl::for_each_indexed(vec, [](auto &&i, auto &&val) {
+  whl::foreach_indexed(vec, [](auto &&i, auto &&val) {
     whl::print(i, val);
   });
   whl::println();
 
-  whl::for_each_indexed(vec.begin(), vec.end(), [](auto &&i, auto &&val) {
+  whl::foreach_indexed(vec.begin(), vec.end(), [](auto &&i, auto &&val) {
     whl::print(i, val);
   });
   whl::println();
@@ -38,49 +39,36 @@ int main() {
   whl::println(str);
   whl::println(whl::str::toupper("str"));
   whl::println(whl::str::tolower(str.begin() + 1, str.end() - 1));
-  whl::for_each_indexed(whl::str::toupper<std::vector<char>>(str.begin() + 1, str.end() - 1), [](auto &&i, auto &&v) {
+  whl::foreach_indexed(whl::str::toupper(str.begin() + 1, str.end() - 1), [](auto &&i, auto &&v) {
     whl::printf("[{}, {}]", i, v);
   });
   whl::println();
 
   whl::println(whl::str::split(str.begin(), str.end(), "_"));
   whl::println(whl::str::split("int float double", "o"));
-  whl::println(whl::str::split<std::list<std::string>>("int float double", "t"));
-  whl::println(whl::str::split<std::deque<std::string>>("int float double", " "));
+  whl::println(whl::str::split("int float double", "t"));
+  whl::println(whl::str::split("int float double", " "));
 
   std::vector<const char *> v = {"(", "_", ")"};
   whl::println(whl::str::join(v, "O"));
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
   whl::println(whl::str::join(std::array{"a", "b", "c"}, "-"));
 
-  std::vector<std::string>{"aa", "bb", "cc", "dd", "ee", "ff", "gg"}
-      | whl::op::tap([](auto &&it) { whl::print(it, ' '); })
-      | whl::op::tap_indexed([](auto &&i, auto &&v) { whl::print(i, ' ', v, ' '); })
+  std::vector<std::string>{"ab", "cd", "ef", "gh", "ij", "kl", "mn"}
+      | whl::op::foreach ([](auto &&it) { whl::print(it, ' '); })
+      | whl::op::foreach_indexed([](auto &&i, auto &&v) { whl::print(i, ' ', v, ' '); })
       | whl::op::take(6)
       | whl::op::drop(1)
       | whl::op::println()
-      | whl::op::concat(std::array{"hh", "ii", "jj"})
+      | whl::op::concat(std::array{"op", "qr", "st"})
       | whl::op::println()
-      | whl::op::reverse()
-      | whl::op::println()
-      | whl::op::sort()
-      | whl::op::println()
-      | whl::op::shuffle()
-      | whl::op::filter(whl::func::not_equal_with("bb"))
+      | whl::op::filter(whl::func::not_equal_with("cd"))
       | whl::op::println()
       | whl::op::flat_map([](auto &&it) { return it + "-"; })
-      | whl::op::println()
-      | whl::op::distinct()
-      | whl::op::to<std::deque>()
       | whl::op::println()
       | whl::op::map([](auto &&it) { return static_cast<int32_t>(it); })
       | whl::op::println()
       | whl::op::chunk(3)
-      | whl::op::println()
-      | whl::op::flatten()
-      | whl::op::println()
-      | whl::op::map([](auto &&it) { return std::to_string(it); })
-      | whl::op::sum<std::string>()
       | whl::op::println();
 
   std::vector{"a", "b", "c"}

@@ -219,7 +219,7 @@ struct formatter<T, decltype(std::begin(std::declval<T>()), void())> {
       out << "[]";
       return;
     }
-    detail::out_to(out, '[', *it);
+    detail::out_to(out, '[', *it++);
     for (; it != std::end(arg); ++it) {
       detail::out_to(out, ", ", *it);
     }

@@ -31,15 +31,20 @@
 namespace whl {
 
 template<typename Size = std::size_t, typename Iter, typename Fn>
-inline void for_each_indexed(Iter first, Iter last, Fn fn) {
+inline void foreach_indexed(Iter first, Iter last, Fn fn) {
   for (Size i{}; first != last; ++first, ++i) {
     fn(i, *first);
   }
 }
 
 template<typename C, typename Fn>
-inline void for_each_indexed(const C &cont, Fn fn) {
-  for_each_indexed<decltype(std::size(cont))>(std::begin(cont), std::end(cont), fn);
+inline void foreach_indexed(const C &cont, Fn fn) {
+  foreach_indexed<decltype(std::size(cont))>(std::begin(cont), std::end(cont), fn);
+}
+
+template<typename C, typename Fn>
+inline void foreach_indexed(C &cont, Fn fn) {
+  foreach_indexed<decltype(std::size(cont))>(std::begin(cont), std::end(cont), fn);
 }
 
 template<typename C>
@@ -70,11 +75,11 @@ struct with_index {
 
   constexpr explicit with_index(const C &cont) : cont(cont) {}
 
-  constexpr auto begin() {
+  constexpr auto begin() const {
     return iter_indexed<decltype(std::begin(cont))>(std::begin(cont));
   }
 
-  constexpr auto end() {
+  constexpr auto end() const {
     return iter_indexed<decltype(std::end(cont))>(std::end(cont));
   }
 };
@@ -113,7 +118,7 @@ struct array {
   }
 
   array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
-    for_each_indexed(il, [this](auto &&i, auto &&v) {
+    foreach_indexed(il, [this](auto &&i, auto &&v) {
       ptr[i] = v;
     });
   }
