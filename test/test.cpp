@@ -71,10 +71,10 @@ int main() {
       | whl::op::chunk(3)
       | whl::op::println();
 
-  std::vector{"a", "b", "c"}
+  whl::op::range('a', 'd')
       | whl::op::zip(std::vector{10, 100, 1000})
       | whl::op::println()
-      | whl::op::map([](auto &&it) { return std::string(it.first) + std::to_string(it.second); })
+      | whl::op::map([](auto &&it) { return std::string{it.first} + std::to_string(it.second); })
       | whl::op::map([](auto &&it) { return it.length(); })
       | whl::op::average()
       | whl::op::println();
@@ -92,6 +92,10 @@ int main() {
   std::vector{"a", "b", "c"}
       | whl::op::zip(std::vector{0, 1, 2})
       | whl::op::unzip()
+      | whl::op::println();
+
+  whl::op::generate(1, [](auto &&it) { return it * 2; })
+      | whl::op::take(20)
       | whl::op::println();
 
   whl::str::split("int float double", " ") | whl::op::println();

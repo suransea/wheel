@@ -81,6 +81,105 @@ struct sequence {
   }
 };
 
+template<typename Val>
+struct range_iter {
+  private:
+  Val value;
+
+  public:
+  using value_type = Val;
+  using pointer = value_type *;
+  using reference = value_type &;
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::input_iterator_tag;
+
+  public:
+  constexpr range_iter(Val value) : value(value){};
+
+  value_type operator*() {
+    return value;
+  }
+
+  pointer operator->() {
+    return std::addressof(value);
+  }
+
+  range_iter &operator++() {
+    ++value;
+    return *this;
+  }
+
+  range_iter operator++(int) {
+    range_iter it = *this;
+    ++*this;
+    return it;
+  }
+
+  bool operator!=(const range_iter &it) {
+    return !(*this == it);
+  }
+
+  bool operator==(const range_iter &it) {
+    return value == it.value;
+  }
+};
+
+template<typename Val>
+constexpr inline auto range(Val begin, Val end) {
+  return sequence(range_iter(begin), range_iter(end));
+}
+
+template<typename Val, typename Fn>
+struct generator_iter {
+  private:
+  std::optional<Val> value;
+  const Fn generate;
+
+  public:
+  using value_type = Val;
+  using pointer = std::optional<Val>;
+  using reference = value_type &;
+  using difference_type = std::ptrdiff_t;
+  using iterator_category = std::input_iterator_tag;
+
+  public:
+  constexpr generator_iter(Val value, Fn generate) : value(value), generate(generate){};
+
+  constexpr generator_iter(Fn generate) : value(), generate(generate){};
+
+  value_type operator*() {
+    return *value;
+  }
+
+  pointer operator->() {
+    return value;
+  }
+
+  generator_iter &operator++() {
+    value = generate(*value);
+    return *this;
+  }
+
+  generator_iter operator++(int) {
+    generator_iter it = *this;
+    ++*this;
+    return it;
+  }
+
+  bool operator!=(const generator_iter &it) {
+    return !(*this == it);
+  }
+
+  bool operator==(const generator_iter &it) {
+    return value == it.value;
+  }
+};
+
+template<typename Val, typename Fn>
+constexpr inline auto generate(Val init, Fn generate) {
+  return sequence(generator_iter(init, generate), generator_iter<Val, Fn>(generate));
+}
+
 template<typename Fn>
 constexpr inline auto foreach (Fn fn) {
   return operation([fn](auto &&cont) {
@@ -160,7 +259,7 @@ struct flatten_iter {
   public:
   using difference_type = typename inner_iter_type::difference_type;
   using value_type = typename inner_iter_type::value_type;
-  using pointer = typename inner_iter_type::pointer;
+  using pointer = std::optional<value_type>;
   using reference = typename inner_iter_type::reference;
   using iterator_category = std::input_iterator_tag;
 
@@ -192,7 +291,7 @@ struct flatten_iter {
     return *this;
   }
 
-  std::optional<value_type> operator->() {
+  pointer operator->() {
     return **this;
   }
 
@@ -248,7 +347,7 @@ struct zip_iter {
   using difference_type = typename Iter::difference_type;
   using value_type = remove_cr_t<decltype(zipper(std::declval<typename Iter::value_type>(),
                                                  std::declval<typename OtherIter::value_type>()))>;
-  using pointer = value_type *;
+  using pointer = std::optional<value_type>;
   using reference = value_type &;
   using iterator_category = std::input_iterator_tag;
 
@@ -272,7 +371,7 @@ struct zip_iter {
     return *this;
   }
 
-  std::optional<value_type> operator->() {
+  pointer operator->() {
     return **this;
   }
 
@@ -602,7 +701,7 @@ struct concat_iter {
   public:
   using difference_type = typename Iter::difference_type;
   using value_type = typename Iter::value_type;
-  using pointer = typename Iter::pointer;
+  using pointer = std::optional<value_type>;
   using reference = typename Iter::reference;
   using iterator_category = std::input_iterator_tag;
 
@@ -626,7 +725,7 @@ struct concat_iter {
     return *this;
   }
 
-  std::optional<value_type> operator->() {
+  pointer operator->() {
     return **this;
   }
 
@@ -686,7 +785,7 @@ struct chunk_iter {
   public:
   using difference_type = std::ptrdiff_t;
   using value_type = sequence<Iter>;
-  using pointer = value_type *;
+  using pointer = std::optional<value_type>;
   using reference = value_type &;
   using iterator_category = std::input_iterator_tag;
 
@@ -719,7 +818,7 @@ struct chunk_iter {
     return *this;
   }
 
-  std::optional<value_type> operator->() {
+  pointer operator->() {
     return **this;
   }
 
