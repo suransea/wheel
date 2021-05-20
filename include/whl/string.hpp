@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "whl/operation.hpp"
+#include "whl/sequence.hpp"
 
 namespace whl::str {
 
@@ -73,7 +74,7 @@ constexpr inline auto split(const Str &str, const Regex &regex) {
 
 template<typename CharT = char, typename Iter, typename Dlm>
 constexpr inline auto join(Iter first, Iter last, const Dlm &delimiter) {
-  return op::sequence(first, last) | op::join<CharT>(delimiter);
+  return sequence(first, last) | op::join<CharT>(delimiter);
 }
 
 template<typename CharT = char, typename C, typename Dlm>

@@ -39,6 +39,7 @@
 #include "whl/container.hpp"
 #include "whl/format.hpp"
 #include "whl/print.hpp"
+#include "whl/sequence.hpp"
 #include "whl/type.hpp"
 
 namespace whl::op {
@@ -54,131 +55,6 @@ struct operation : Fn {
     return op(val);
   }
 };
-
-template<typename Iter>
-struct sequence {
-  using const_iterator = Iter;
-  using iterator = const_iterator;
-  using value_type = typename Iter::value_type;
-  using pointer = typename Iter::pointer;
-  using reference = typename Iter::reference;
-  using const_reference = const reference;
-  using const_pointer = const pointer;
-  using difference_type = typename Iter::difference_type;
-
-  protected:
-  const iterator first, last;
-
-  public:
-  constexpr sequence(iterator first, iterator last) : first(first), last(last) {}
-
-  constexpr iterator begin() const noexcept {
-    return first;
-  }
-
-  constexpr iterator end() const noexcept {
-    return last;
-  }
-};
-
-template<typename Val>
-struct range_iter {
-  private:
-  Val value;
-
-  public:
-  using value_type = Val;
-  using pointer = value_type *;
-  using reference = value_type &;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::input_iterator_tag;
-
-  public:
-  constexpr range_iter(Val value) : value(value){};
-
-  value_type operator*() {
-    return value;
-  }
-
-  pointer operator->() {
-    return std::addressof(value);
-  }
-
-  range_iter &operator++() {
-    ++value;
-    return *this;
-  }
-
-  range_iter operator++(int) {
-    range_iter it = *this;
-    ++*this;
-    return it;
-  }
-
-  bool operator!=(const range_iter &it) {
-    return !(*this == it);
-  }
-
-  bool operator==(const range_iter &it) {
-    return value == it.value;
-  }
-};
-
-template<typename Val>
-constexpr inline auto range(Val begin, Val end) {
-  return sequence(range_iter(begin), range_iter(end));
-}
-
-template<typename Val, typename Fn>
-struct generator_iter {
-  private:
-  std::optional<Val> value;
-  const Fn generate;
-
-  public:
-  using value_type = Val;
-  using pointer = std::optional<Val>;
-  using reference = value_type &;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::input_iterator_tag;
-
-  public:
-  constexpr generator_iter(Val value, Fn generate) : value(value), generate(generate){};
-
-  constexpr generator_iter(Fn generate) : value(), generate(generate){};
-
-  value_type operator*() {
-    return *value;
-  }
-
-  pointer operator->() {
-    return value;
-  }
-
-  generator_iter &operator++() {
-    value = generate(*value);
-    return *this;
-  }
-
-  generator_iter operator++(int) {
-    generator_iter it = *this;
-    ++*this;
-    return it;
-  }
-
-  bool operator!=(const generator_iter &it) {
-    return !(*this == it);
-  }
-
-  bool operator==(const generator_iter &it) {
-    return value == it.value;
-  }
-};
-
-template<typename Val, typename Fn>
-constexpr inline auto generate(Val init, Fn generate) {
-  return sequence(generator_iter(init, generate), generator_iter<Val, Fn>(generate));
-}
 
 template<typename Fn>
 constexpr inline auto foreach (Fn fn) {

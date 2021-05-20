@@ -29,6 +29,7 @@
 #include <whl/operation.hpp>
 #include <whl/pointer.hpp>
 #include <whl/print.hpp>
+#include <whl/sequence.hpp>
 #include <whl/string.hpp>
 #include <whl/type.hpp>
 
