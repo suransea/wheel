@@ -291,7 +291,7 @@ template<typename V>
 using zerop = v<V::value == 0>;
 
 template<typename V>
-using chr = v<V::value, char>;
+using chr = ch<V::value>;
 
 template<typename T>
 using null = eql<T, nil>;
