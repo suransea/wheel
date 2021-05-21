@@ -80,7 +80,7 @@ struct map_iter {
 
   public:
   using value_type = remove_cr_t<decltype(fn(std::declval<typename Iter::value_type>()))>;
-  using pointer = value_type *;
+  using pointer = std::optional<value_type>;
   using reference = value_type &;
   using difference_type = typename Iter::difference_type;
   using iterator_category = std::input_iterator_tag;
@@ -92,7 +92,7 @@ struct map_iter {
     return fn(*iter);
   }
 
-  std::optional<value_type> operator->() {
+  pointer operator->() {
     return **this;
   }
 
