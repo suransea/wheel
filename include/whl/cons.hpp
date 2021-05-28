@@ -14,25 +14,32 @@
 // limitations under the License.
 //
 
-#ifndef WHEEL_WHL_HPP
-#define WHEEL_WHL_HPP
+#ifndef WHEEL_WHL_CONS_HPP
+#define WHEEL_WHL_CONS_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <whl/cons.hpp>
-#include <whl/container.hpp>
-#include <whl/format.hpp>
-#include <whl/function.hpp>
-#include <whl/list.hpp>
-#include <whl/literals.hpp>
-#include <whl/meta.hpp>
-#include <whl/operation.hpp>
-#include <whl/pointer.hpp>
-#include <whl/print.hpp>
-#include <whl/sequence.hpp>
-#include <whl/string.hpp>
-#include <whl/type.hpp>
+#include <utility>
 
-#endif // WHEEL_WHL_HPP
+namespace whl {
+
+template<typename Car, typename Cdr>
+constexpr inline auto cons(const Car &car, const Cdr &cdr) {
+  return std::pair(car, cdr);
+}
+
+template<typename Pair>
+constexpr inline auto car(const Pair &p) {
+  return std::get<0>(p);
+}
+
+template<typename Pair>
+constexpr inline auto cdr(const Pair &p) {
+  return std::get<1>(p);
+}
+
+} // namespace whl
+
+#endif // WHEEL_WHL_CONS_HPP
