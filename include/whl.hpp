@@ -25,7 +25,6 @@
 #include <whl/container.hpp>
 #include <whl/format.hpp>
 #include <whl/function.hpp>
-#include <whl/list.hpp>
 #include <whl/literals.hpp>
 #include <whl/meta.hpp>
 #include <whl/operation.hpp>
