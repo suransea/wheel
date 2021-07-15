@@ -23,6 +23,7 @@
 
 #include <cctype>
 #include <iterator>
+#include <type_traits>
 #include <utility>
 
 #include "whl/function.hpp"
@@ -108,8 +109,10 @@ struct array {
 
   array(size_type size) : ptr(new value_type[size]()), size_(size) {}
 
-  array(const array &arr) : array(arr.size_) {
-    std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
+  array(const array &arr) : ptr(new value_type[arr.size_]), size_(arr.size_) {
+    for (auto i = 0; i < size_; ++i) {
+      new (ptr + i) value_type(arr[i]);
+    }
   }
 
   array(array &&arr) : ptr(arr.ptr), size_(arr.size_) {
@@ -119,7 +122,7 @@ struct array {
 
   array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
     foreach_indexed(il, [this](auto &&i, auto &&v) {
-      ptr[i] = v;
+      new (ptr + i) value_type(std::move(v));
     });
   }
 
@@ -128,12 +131,12 @@ struct array {
   }
 
   array &operator=(const array &arr) {
-    if (size_ < arr.size_) {
-      delete[] ptr;
-      ptr = new value_type[arr.size_];
-    }
+    delete[] ptr;
     size_ = arr.size_;
-    std::memcpy(ptr, arr.ptr, size_ * sizeof(value_type));
+    ptr = new value_type[size_];
+    for (auto i = 0; i < size_; ++i) {
+      new (ptr + i) value_type(arr[i]);
+    }
     return *this;
   }
 
