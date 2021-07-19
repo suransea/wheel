@@ -96,19 +96,10 @@ template<typename Cons>
 using rest = cdr<Cons>;
 
 template<typename Cons>
-using fst = car<Cons>;
-
-template<typename Cons>
 using first = car<Cons>;
 
 template<typename Cons>
-using snd = cadr<Cons>;
-
-template<typename Cons>
 using second = cadr<Cons>;
-
-template<typename Cons>
-using trd = caddr<Cons>;
 
 template<typename Cons>
 using third = caddr<Cons>;
