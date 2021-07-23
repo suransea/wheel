@@ -446,7 +446,7 @@ struct fold_left_impl<Op, Init, nil> {
 
 template<template<typename...> typename Op, typename Init, typename List>
 struct fold_right_impl {
-  using type = Op<typename fold_right_impl<Op, Init, cdr<List>>::type, car<List>>;
+  using type = Op<car<List>, typename fold_right_impl<Op, Init, cdr<List>>::type>;
 };
 
 template<template<typename...> typename Op, typename Init>
