@@ -27,23 +27,23 @@
 namespace whl::meta {
 
 template<auto Val, typename T = decltype(Val)>
-struct v {
+struct val {
   using type = T;
   static inline constexpr T value = Val;
 };
 
-using t = v<true>;
+using t = val<true>;
 
-using f = v<false>;
+using f = val<false>;
 
 template<char Val>
-using ch = v<Val>;
+using ch = val<Val>;
 
 template<std::int32_t Val>
-using i32 = v<Val>;
+using i32 = val<Val>;
 
 template<std::uint32_t Val>
-using u32 = v<Val>;
+using u32 = val<Val>;
 
 struct nil : f {
   using type = nil;
@@ -213,43 +213,43 @@ template<typename Arg, typename T>
 using typep = eql<type_of<Arg>, T>;
 
 template<typename L, typename R>
-using plus = v<L::value + R::value>;
+using plus = val<L::value + R::value>;
 
 template<typename L, typename R>
-using minus = v<L::value - R::value>;
+using minus = val<L::value - R::value>;
 
 template<typename L, typename R>
-using mul = v<L::value * R::value>;
+using mul = val<L::value * R::value>;
 
 template<typename L, typename R>
-using div = v<L::value / R::value>;
+using div = val<L::value / R::value>;
 
 template<typename L, typename R>
-using rem = v<L::value % R::value>;
+using rem = val<L::value % R::value>;
 
 template<typename L, typename R>
 using mod = rem<plus<rem<L, R>, R>, R>;
 
 template<typename L, typename R>
-using gt = v<(L::value > R::value)>;
+using gt = val<(L::value > R::value)>;
 
 template<typename L, typename R>
-using lt = v<(L::value < R::value)>;
+using lt = val<(L::value < R::value)>;
 
 template<typename L, typename R>
-using ge = v<L::value >= R::value>;
+using ge = val<L::value >= R::value>;
 
 template<typename L, typename R>
-using le = v<L::value <= R::value>;
+using le = val<L::value <= R::value>;
 
 template<typename L, typename R>
-using ne = v<L::value != R::value>;
+using ne = val<L::value != R::value>;
 
 template<typename L, typename R>
-using eq = v<L::value == R::value>;
+using eq = val<L::value == R::value>;
 
 template<typename L, typename R>
-using equal = v<L::value == R::value>;
+using equal = val<L::value == R::value>;
 
 template<typename L, typename R>
 using min = if_<le<L, R>, L, R>;
@@ -258,28 +258,28 @@ template<typename L, typename R>
 using max = if_<ge<L, R>, L, R>;
 
 template<typename V>
-using neg = v<-V::value>;
+using neg = val<-V::value>;
 
 template<typename V>
-using abs = if_<ge<V, v<0>>, V, neg<V>>;
+using abs = if_<ge<V, val<0>>, V, neg<V>>;
 
 template<typename V>
-using succ = v<V::value + 1>;
+using succ = val<V::value + 1>;
 
 template<typename V>
-using pred = v<V::value - 1>;
+using pred = val<V::value - 1>;
 
 template<typename L, typename R>
-using and_ = v<L::value && R::value>;
+using and_ = val<L::value && R::value>;
 
 template<typename L, typename R>
-using or_ = v<L::value || R::value>;
+using or_ = val<L::value || R::value>;
 
 template<typename V>
-using not_ = v<!V::value>;
+using not_ = val<!V::value>;
 
 template<typename V>
-using zerop = v<V::value == 0>;
+using zerop = val<V::value == 0>;
 
 template<typename V>
 using chr = ch<V::value>;
@@ -291,7 +291,7 @@ template<typename Car, typename... Cdr>
 using list = typename detail::list_impl<Car, Cdr...>::type;
 
 template<auto... Vals>
-using listv = typename detail::list_impl<v<Vals>...>::type;
+using listv = typename detail::list_impl<val<Vals>...>::type;
 
 template<char... Chars>
 using str = typename detail::list_impl<ch<Chars>...>::type;
@@ -544,7 +544,7 @@ using fold = typename detail::fold_left_impl<Op, Init, List>::type;
 template<template<typename...> typename Op, typename List, typename Init = void>
 using reduce = typename detail::reduce_impl<Op, List, Init>::type;
 
-template<typename List, typename Zero = v<0>>
+template<typename List, typename Zero = val<0>>
 using sum = reduce<plus, List, Zero>;
 
 template<typename List>
@@ -564,6 +564,24 @@ using span = typename detail::span_impl<Pred, List>::type;
 
 template<typename List, template<typename...> typename Eq = eql>
 using group = typename detail::group_impl<List, Eq>::type;
+
+template<template<typename...> typename F>
+struct flip {
+  template<typename A, typename B>
+  using apply = F<B, A>;
+};
+
+template<template<typename...> typename F, template<typename...> typename G>
+struct composite {
+  template<typename A>
+  using apply = F<G<A>>;
+};
+
+template<template<typename...> typename F, typename A>
+struct partial {
+  template<typename B>
+  using apply = F<A, B>;
+};
 
 template<typename List, typename Fn>
 inline void dolist(Fn fn) {
