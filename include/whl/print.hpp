@@ -47,12 +47,7 @@ inline void println() {
 
 template<typename Fmt, typename... Args>
 inline void printf(const Fmt &fmt, const Args &...args) {
-  constexpr auto is_char = std::is_same_v<char, remove_cr_t<decltype(*std::begin(fmt))>>;
-  if constexpr (is_char) {
-    detail::format_to(std::cout, std::begin(fmt), std::end(fmt), args...);
-  } else {
-    detail::format_to(std::wcout, std::begin(fmt), std::end(fmt), args...);
-  }
+  detail::format_to(std::cout, std::begin(fmt), std::end(fmt), args...);
 }
 
 } // namespace whl

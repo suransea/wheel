@@ -47,21 +47,21 @@ struct unique_arr {
   size_type size_;
 
   public:
-  unique_arr() : ptr(), size_() {}
+  unique_arr() : ptr{}, size_{} {}
 
-  unique_arr(std::nullptr_t) : unique_arr() {}
+  unique_arr(std::nullptr_t) : unique_arr{} {}
 
   unique_arr(pointer ptr, size_type size) : ptr(ptr), size_(size) {}
 
-  unique_arr(size_type size) : ptr(new value_type[size]()), size_(size) {}
+  unique_arr(const unique_arr &) = delete;
 
   unique_arr(unique_arr &&arr) : ptr(arr.ptr), size_(arr.size_) {
-    arr.ptr = pointer();
-    arr.size_ = size_type();
+    arr.ptr = pointer{};
+    arr.size_ = size_type{};
   }
 
   unique_arr(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
-    foreach_indexed(il, [this](auto &&i, auto &&v) {
+    foreach_indexed(il, [this](auto i, auto &&v) {
       new (ptr + i) value_type(std::move(v));
     });
   }
@@ -95,8 +95,8 @@ struct unique_arr {
 
   pointer release() noexcept {
     pointer tmp = ptr;
-    ptr = pointer();
-    size_ = size_type();
+    ptr = pointer{};
+    size_ = size_type{};
     return tmp;
   }
 
@@ -108,8 +108,8 @@ struct unique_arr {
 
   void reset(std::nullptr_t = nullptr) noexcept {
     delete[] ptr;
-    ptr = pointer();
-    size_ = size_type();
+    ptr = pointer{};
+    size_ = size_type{};
   }
 
   void swap(unique_arr &arr) noexcept {
@@ -129,12 +129,20 @@ struct unique_arr {
     return ptr;
   }
 
+  const_iterator cbegin() const noexcept {
+    return begin();
+  }
+
   iterator end() noexcept {
     return ptr + size_;
   }
 
   const_iterator end() const noexcept {
     return ptr + size_;
+  }
+
+  const_iterator cend() const noexcept {
+    return end();
   }
 };
 
@@ -165,13 +173,11 @@ struct shared_arr {
   long *ref_count;
 
   public:
-  shared_arr() : ptr(), size_(), ref_count() {}
+  shared_arr() : ptr{}, size_{}, ref_count{} {}
 
-  shared_arr(std::nullptr_t) : shared_arr() {}
+  shared_arr(std::nullptr_t) : shared_arr{} {}
 
-  shared_arr(pointer ptr, size_type size) : ptr(ptr), size_(size), ref_count(new long(1)) {}
-
-  shared_arr(size_type size) : ptr(new value_type[size]()), size_(size), ref_count(new long(1)) {}
+  shared_arr(pointer ptr, size_type size) : ptr(ptr), size_(size), ref_count(new long{1}) {}
 
   shared_arr(const shared_arr &arr) : ptr(arr.ptr), size_(arr.size_), ref_count(arr.ref_count) {
     if (ref_count) ++(*ref_count);
@@ -180,8 +186,8 @@ struct shared_arr {
   shared_arr(const weak_type &arr);
 
   shared_arr(shared_arr &&arr) : ptr(arr.ptr), size_(arr.size_), ref_count(arr.ref_count) {
-    arr.ptr = pointer();
-    arr.size_ = size_type();
+    arr.ptr = pointer{};
+    arr.size_ = size_type{};
     arr.ref_count = nullptr;
   }
 
@@ -190,7 +196,7 @@ struct shared_arr {
     arr.release();
   }
 
-  shared_arr(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()), ref_count(new long(1)) {
+  shared_arr(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()), ref_count(new long{1}) {
     foreach_indexed(il, [this](auto &&i, auto &&v) {
       new (ptr + i) value_type(std::move(v));
     });
@@ -273,12 +279,20 @@ struct shared_arr {
     return ptr;
   }
 
+  const_iterator cbegin() const noexcept {
+    return begin();
+  }
+
   iterator end() noexcept {
     return ptr + size_;
   }
 
   const_iterator end() const noexcept {
     return ptr + size_;
+  }
+
+  const_iterator cend() const noexcept {
+    return end();
   }
 };
 
@@ -305,17 +319,17 @@ struct weak_arr {
   long *ref_count;
 
   public:
-  weak_arr() : ptr(), size_(), ref_count() {}
+  weak_arr() : ptr{}, size_{}, ref_count{} {}
 
-  weak_arr(std::nullptr_t) : weak_arr() {}
+  weak_arr(std::nullptr_t) : weak_arr{} {}
 
-  weak_arr(pointer ptr, size_type size) : ptr(ptr), size_(size), ref_count() {}
+  weak_arr(pointer ptr, size_type size) : ptr(ptr), size_(size), ref_count{} {}
 
   weak_arr(const weak_arr &arr) : ptr(arr.ptr), size_(arr.size_), ref_count(arr.ref_count) {}
 
   weak_arr(weak_arr &&arr) : ptr(arr.ptr), size_(arr.size_), ref_count(arr.ref_count) {
-    arr.ptr = pointer();
-    arr.size_ = size_type();
+    arr.ptr = pointer{};
+    arr.size_ = size_type{};
     arr.ref_count = nullptr;
   }
 
@@ -393,12 +407,20 @@ struct weak_arr {
     return ptr;
   }
 
+  const_iterator cbegin() const noexcept {
+    return begin();
+  }
+
   iterator end() noexcept {
     return ptr + size_;
   }
 
   const_iterator end() const noexcept {
     return ptr + size_;
+  }
+
+  const_iterator cend() const noexcept {
+    return end();
   }
 };
 

@@ -21,7 +21,7 @@
 #pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <cstddef>
+#include <cstdint>
 #include <type_traits>
 
 namespace whl::meta {

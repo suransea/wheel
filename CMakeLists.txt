@@ -3,13 +3,10 @@ project(wheel)
 
 set(CMAKE_CXX_STANDARD 17)
 
-aux_source_directory(src SOURCE)
-
-add_library(wheel ${SOURCE})
-
 include_directories(
-        include
+    include
 )
 
-# TEST
-add_subdirectory(test)
+add_subdirectory(tests)
+
+enable_testing()

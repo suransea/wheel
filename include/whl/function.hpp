@@ -32,12 +32,6 @@ using bi_consumer = std::function<void(T, U)>;
 template<typename T>
 using supplier = std::function<T(void)>;
 
-template<typename T, typename R>
-using function = std::function<R(T)>;
-
-template<typename T, typename U, typename R>
-using bi_function = std::function<R(T, U)>;
-
 template<typename T>
 using predicate = std::function<bool(T)>;
 

@@ -39,18 +39,26 @@ struct sequence {
   using const_pointer = const pointer;
   using difference_type = typename Iter::difference_type;
 
-  protected:
+  private:
   const iterator first, last;
 
   public:
   constexpr sequence(iterator first, iterator last) : first(first), last(last) {}
 
-  constexpr iterator begin() const noexcept {
+  constexpr const_iterator begin() const noexcept {
     return first;
   }
 
-  constexpr iterator end() const noexcept {
+  constexpr const_iterator end() const noexcept {
     return last;
+  }
+
+  constexpr const_iterator cbegin() const noexcept {
+    return begin();
+  }
+
+  constexpr const_iterator cend() const noexcept {
+    return end();
   }
 };
 
@@ -74,7 +82,7 @@ struct range_iter {
   }
 
   pointer operator->() {
-    return std::addressof(value);
+    return &value;
   }
 
   range_iter &operator++() {
@@ -83,7 +91,7 @@ struct range_iter {
   }
 
   range_iter operator++(int) {
-    range_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -99,7 +107,7 @@ struct range_iter {
 
 template<typename Val>
 constexpr inline auto range(Val begin, Val end) {
-  return sequence(range_iter(begin), range_iter(end));
+  return sequence{range_iter{begin}, range_iter{end}};
 }
 
 template<typename Val, typename Fn>
@@ -116,9 +124,9 @@ struct generator_iter {
   using iterator_category = std::input_iterator_tag;
 
   public:
-  constexpr generator_iter(Val value, Fn generate) : value(value), generate(generate){};
+  constexpr generator_iter(Val value, Fn generate) : value(value), generate(std::move(generate)){};
 
-  constexpr generator_iter(Fn generate) : value(), generate(generate){};
+  constexpr generator_iter(Fn generate) : value(), generate(std::move(generate)){};
 
   value_type operator*() {
     return *value;
@@ -150,7 +158,7 @@ struct generator_iter {
 
 template<typename Val, typename Fn>
 constexpr inline auto generate(Val init, Fn generate) {
-  return sequence(generator_iter(init, generate), generator_iter<Val, Fn>(generate));
+  return sequence{generator_iter{init, generate}, generator_iter<Val, Fn>{generate}};
 }
 
 } // namespace whl

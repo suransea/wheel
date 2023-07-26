@@ -8,47 +8,49 @@
 #include <utility>
 #include <vector>
 
-#include "whl.hpp"
+#include <catch2/catch_test_macros.hpp>
 
-int main() {
-  {
-    using namespace whl::literals;
-    auto sz = 0_sz;
-    whl::println("size of size_t: ", sizeof(sz));
-  }
+#include <whl.hpp>
 
-  std::vector vec = {0, 4, 5};
+TEST_CASE("literals") {
+  using namespace whl::literals;
+  REQUIRE(sizeof(0_sz) == sizeof(std::size_t));
+}
+
+TEST_CASE("with_index") {
+  auto vec = std::vector{1, 2, 3};
   for (auto [i, v] : whl::with_index(vec)) {
-    whl::printf("{}: {}\n", i, v);
+    REQUIRE(i + 1 == v);
   }
+}
 
-  whl::foreach_indexed(vec, [](auto &&i, auto &&val) {
-    whl::print(i, val);
+TEST_CASE("foreach_indexed") {
+  auto vec = std::vector{1, 2, 3};
+  whl::foreach_indexed(vec, [](auto &&i, auto &&v) {
+    REQUIRE(i + 1 == v);
   });
-  whl::println();
-
-  whl::foreach_indexed(vec.begin(), vec.end(), [](auto &&i, auto &&val) {
-    whl::print(i, val);
+  whl::foreach_indexed(vec.begin(), vec.end(), [](auto &&i, auto &&v) {
+    REQUIRE(i + 1 == v);
   });
-  whl::println();
+}
 
-  std::string str = "lowercase_and_UPPERCASE";
+TEST_CASE("string upper & lower") {
+  auto str = std::string{"lowercase_and_UPPERCASE"};
   whl::str::toupper_inplace(str);
-  whl::println(str);
-  whl::println(whl::str::tolower(str));
-  whl::println(str);
-  whl::println(whl::str::toupper("str"));
-  whl::println(whl::str::tolower(str.begin() + 1, str.end() - 1));
-  whl::foreach_indexed(whl::str::toupper(str.begin() + 1, str.end() - 1), [](auto &&i, auto &&v) {
-    whl::printf("[{}, {}]", i, v);
-  });
-  whl::println();
+  REQUIRE(str == "LOWERCASE_AND_UPPERCASE");
+  REQUIRE(whl::str::tolower(str) == "lowercase_and_uppercase");
+  REQUIRE(whl::str::tolower(str.begin() + 1, str.end() - 1) == "owercase_and_uppercas");
+}
 
-  whl::println(whl::str::split(str.begin(), str.end(), "_"));
-  whl::println(whl::str::split("int float double", "o"));
-  whl::println(whl::str::split("int float double", "t"));
-  whl::println(whl::str::split("int float double", " "));
+TEST_CASE("split string") {
+  auto res = whl::str::split("int float double", " ") | whl::op::to<std::vector>();
+  REQUIRE(res.size() == 3);
+  REQUIRE(res[0] == "int");
+  REQUIRE(res[1] == "float");
+  REQUIRE(res[2] == "double");
+}
 
+TEST_CASE("others") {
   std::vector<const char *> v = {"(", "_", ")"};
   whl::println(whl::str::join(v, "O"));
   whl::println(whl::str::join(v.begin(), v.end(), "|"));
@@ -76,7 +78,7 @@ int main() {
       | whl::op::println()
       | whl::op::map([](auto &&it) { return std::string{it.first} + std::to_string(it.second); })
       | whl::op::map([](auto &&it) { return it.length(); })
-      | whl::op::average()
+      | whl::op::average<double>()
       | whl::op::println();
 
   std::vector{1, 3, 5, 7}
@@ -106,5 +108,4 @@ int main() {
   whl::str::split("int float double", " ") | whl::op::println();
   whl::println(std::vector{std::vector{0, 1}, std::vector{2, 3}, std::vector{4, 5}});
   whl::println(std::make_tuple(1, 'c', "str", std::make_pair(1, 2), std::make_tuple("a", 'b', 'c'), std::array{1, 2, 3, 4}));
-  return 0;
 }

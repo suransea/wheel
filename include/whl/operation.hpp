@@ -17,6 +17,7 @@
 #ifndef WHEEL_WHL_OPERATION_HPP
 #define WHEEL_WHL_OPERATION_HPP
 
+#include <iterator>
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
@@ -46,30 +47,29 @@ namespace whl::op {
 
 template<typename Fn>
 struct operation : Fn {
-  operation() = default;
 
-  constexpr explicit operation(Fn fn) : Fn(fn) {}
+  constexpr explicit operation(Fn &&fn) : Fn(std::move(fn)) {}
 
   template<typename T>
-  friend constexpr auto operator|(T val, operation<Fn> op) {
+  friend constexpr inline auto operator|(T val, operation<Fn> op) {
     return op(val);
   }
 };
 
 template<typename Fn>
 constexpr inline auto foreach (Fn fn) {
-  return operation([fn](auto &&cont) {
+  return operation{[fn](auto &&cont) {
     std::for_each(std::begin(cont), std::end(cont), fn);
     return cont;
-  });
+  }};
 }
 
 template<typename Fn>
 constexpr inline auto foreach_indexed(Fn fn) {
-  return operation([fn](auto &&cont) {
+  return operation{[fn](auto &&cont) {
     whl::foreach_indexed(cont, fn);
     return cont;
-  });
+  }};
 }
 
 template<typename Iter, typename Fn>
@@ -79,14 +79,14 @@ struct map_iter {
   const Fn fn;
 
   public:
-  using value_type = remove_cr_t<decltype(fn(std::declval<typename Iter::value_type>()))>;
+  using value_type = remove_cr_t<decltype(fn(std::declval<typename std::iterator_traits<Iter>::value_type>()))>;
   using pointer = std::optional<value_type>;
   using reference = value_type &;
   using difference_type = typename Iter::difference_type;
   using iterator_category = std::input_iterator_tag;
 
   public:
-  constexpr map_iter(Iter iter, Fn fn) : iter(iter), fn(fn){};
+  constexpr map_iter(Iter iter, Fn fn) : iter(iter), fn(std::move(fn)){};
 
   value_type operator*() {
     return fn(*iter);
@@ -102,7 +102,7 @@ struct map_iter {
   }
 
   map_iter operator++(int) {
-    map_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -118,9 +118,9 @@ struct map_iter {
 
 template<typename Fn>
 constexpr inline auto map(Fn fn) {
-  return operation([fn](auto &&cont) {
-    return sequence(map_iter(std::begin(cont), fn), map_iter(std::end(cont), fn));
-  });
+  return operation{[fn](auto &&cont) {
+    return sequence{map_iter(std::begin(cont), fn), map_iter(std::end(cont), fn)};
+  }};
 }
 
 template<typename Iter>
@@ -172,7 +172,7 @@ struct flatten_iter {
   }
 
   flatten_iter operator++(int) {
-    flatten_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -187,29 +187,30 @@ struct flatten_iter {
 };
 
 constexpr inline auto flatten() {
-  return operation([](auto &&cont) {
-    return sequence(flatten_iter(std::begin(cont)), flatten_iter(std::end(cont)));
-  });
+  return operation{[](auto &&cont) {
+    return sequence{flatten_iter(std::begin(cont)), flatten_iter(std::end(cont))};
+  }};
 }
 
 template<typename Fn>
 constexpr inline auto flat_map(Fn fn) {
-  return operation([fn](auto &&cont) {
+  return operation{[fn](auto &&cont) {
     return cont | map(fn) | flatten();
-  });
+  }};
+}
+
+template<typename C>
+constexpr inline auto to() {
+  return operation{[](auto &&cont) {
+    return C(std::begin(cont), std::end(cont));
+  }};
 }
 
 template<template<typename...> typename C>
 constexpr inline auto to() {
-  return operation([](auto &&cont) {
-    using value_type = remove_cr_t<decltype(*std::begin(cont))>;
-    return C<value_type>(std::begin(cont), std::end(cont));
-  });
-}
-
-template<template<typename...> typename C = std::vector>
-constexpr inline auto collect() {
-  return to<C>();
+  return operation{[](auto &&cont) {
+    return C(std::begin(cont), std::end(cont));
+  }};
 }
 
 template<typename Iter, typename OtherIter, typename Fn>
@@ -252,7 +253,7 @@ struct zip_iter {
   }
 
   zip_iter operator++(int) {
-    zip_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -288,19 +289,19 @@ struct zip_sequence {
       : first(first), last(last), other(other), zipper(zipper) {}
 
   iterator begin() const {
-    return zip_iter(first, last, std::begin(other), std::end(other), zipper);
+    return {first, last, std::begin(other), std::end(other), zipper};
   }
 
   iterator end() const {
-    return zip_iter(last, std::end(other), zipper);
+    return {last, std::end(other), zipper};
   }
 };
 
 template<typename C, typename Fn>
 constexpr inline auto zip(const C &other, Fn fn) {
-  return operation([other, fn](auto &&cont) {
-    return zip_sequence(std::begin(cont), std::end(cont), other, fn);
-  });
+  return operation{[&other, fn](auto &&cont) {
+    return zip_sequence{std::begin(cont), std::end(cont), other, fn};
+  }};
 }
 
 template<typename C>
@@ -311,12 +312,12 @@ constexpr inline auto zip(const C &other) {
 template<template<typename...> typename R1 = std::vector, template<typename...> typename R2 = R1, typename Fn>
 constexpr inline auto unzip(Fn fn) {
   return operation([fn](auto &&cont) {
-    R1<remove_cr_t<decltype(std::get<0>(fn(*std::begin(cont))))>> x{};
-    R2<remove_cr_t<decltype(std::get<1>(fn(*std::begin(cont))))>> y{};
+    auto x = R1<remove_cr_t<decltype(std::get<0>(fn(*std::begin(cont))))>>{};
+    auto y = R2<remove_cr_t<decltype(std::get<1>(fn(*std::begin(cont))))>>{};
     for (auto &&it : cont) {
-      auto &&mapped = fn(it);
-      x.push_back(std::get<0>(mapped));
-      y.push_back(std::get<1>(mapped));
+      auto &&[a, b] = fn(it);
+      x.emplace_back(std::move(a));
+      y.emplace_back(std::move(b));
     }
     return std::make_pair(x, y);
   });
@@ -332,7 +333,7 @@ struct filter_iter {
   public:
   using difference_type = typename Iter::difference_type;
   using value_type = typename Iter::value_type;
-  using pointer = typename Iter::pointer;
+  using pointer = std::optional<value_type>;
   using reference = typename Iter::reference;
   using iterator_category = std::input_iterator_tag;
 
@@ -373,11 +374,11 @@ struct filter_iter {
 
   pointer operator->() {
     eval_value();
-    return std::addressof(*value);
+    return value;
   }
 
   filter_iter operator++(int) {
-    filter_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -394,19 +395,19 @@ struct filter_iter {
 
 template<typename Pred>
 constexpr inline auto filter(Pred pred) {
-  return operation([pred](auto &&cont) {
-    return sequence(filter_iter(std::begin(cont), std::end(cont), pred), filter_iter(std::end(cont), pred));
-  });
+  return operation{[pred](auto &&cont) {
+    return sequence{filter_iter{std::begin(cont), std::end(cont), pred}, filter_iter{std::end(cont), pred}};
+  }};
 }
 
 template<template<typename...> typename C = std::vector, typename Eq>
 constexpr inline auto distinct(Eq eq) {
-  return operation([eq](auto &&cont) {
+  return operation{[eq](auto &&cont) {
     using value_type = remove_cr_t<decltype(*std::begin(cont))>;
-    auto result = C<value_type>();
+    auto result = C<value_type>{};
     std::unique_copy(std::begin(cont), std::end(cont), std::back_inserter(result), eq);
     return result;
-  });
+  }};
 }
 
 template<template<typename...> typename C = std::vector>
@@ -415,19 +416,19 @@ constexpr inline auto distinct() {
 }
 
 constexpr inline auto reverse() {
-  return operation([](auto &&cont) {
-    return sequence(std::rbegin(cont), std::rend(cont));
-  });
+  return operation{[](auto &&cont) {
+    return sequence{std::rbegin(cont), std::rend(cont)};
+  }};
 }
 
 template<template<typename...> typename C = std::vector, typename Comp>
 constexpr inline auto sort(Comp comp) {
-  return operation([comp](auto &&cont) {
+  return operation{[comp](auto &&cont) {
     using value_type = remove_cr_t<decltype(*std::begin(cont))>;
     auto result = C<value_type>(std::begin(cont), std::end(cont));
     std::sort(std::begin(result), std::end(result), comp);
     return result;
-  });
+  }};
 }
 
 template<template<typename...> typename C = std::vector>
@@ -437,135 +438,143 @@ constexpr inline auto sort() {
 
 template<template<typename...> typename C = std::vector>
 constexpr inline auto shuffle() {
-  return operation([](auto &&cont) {
+  return operation{[](auto &&cont) {
     using value_type = remove_cr_t<decltype(*std::begin(cont))>;
     auto result = C<value_type>(std::begin(cont), std::end(cont));
-    auto &&time = std::chrono::system_clock::now().time_since_epoch().count();
+    auto time = std::chrono::system_clock::now().time_since_epoch().count();
     std::shuffle(std::begin(result), std::end(result), std::default_random_engine(time));
     return result;
-  });
+  }};
 }
 
 template<typename Size>
 constexpr inline auto take(Size n) {
-  return operation([n](auto &&cont) {
-    auto &&begin = std::begin(cont);
+  return operation{[n](auto &&cont) {
+    auto begin = std::begin(cont);
     std::advance(begin, n);
-    return sequence(std::begin(cont), begin);
-  });
+    return sequence{std::begin(cont), begin};
+  }};
 }
 
 template<typename Size>
 constexpr inline auto drop(Size n) {
-  return operation([n](auto &&cont) {
-    auto &&begin = std::begin(cont);
+  return operation{[n](auto &&cont) {
+    auto begin = std::begin(cont);
     std::advance(begin, n);
-    return sequence(begin, std::end(cont));
-  });
+    return sequence{begin, std::end(cont)};
+  }};
 }
 
 template<typename Val, typename BinOp>
 constexpr inline auto fold(Val init, BinOp op) {
-  return operation([init, op](auto &&cont) {
+  return operation{[init, op](auto &&cont) {
     return std::accumulate(std::begin(cont), std::end(cont), init, op);
-  });
+  }};
 }
 
 template<typename BinOp>
 constexpr inline auto reduce(BinOp op) {
-  return operation([op](auto &&cont) {
+  return operation{[op](auto &&cont) {
     assert(std::size(cont) > 0);
-    auto result = *std::begin(cont);
-    return std::accumulate(++std::begin(cont), std::end(cont), result, op);
-  });
+    auto begin = std::begin(cont);
+    auto init = *begin++;
+    return std::accumulate(begin, std::end(cont), init, op);
+  }};
 }
 
-template<typename CharT = char, typename Dlm>
-constexpr inline auto join(const Dlm &delimiter) {
-  return operation([delimiter](auto &&cont) {
-    std::basic_ostringstream<CharT> out;
-    auto &&it = std::begin(cont);
+template<typename Out, typename Dlm>
+constexpr inline auto join_to(Out &out, const Dlm &delimiter) {
+  return operation{[&out, &delimiter](auto &&cont) {
+    auto it = std::begin(cont);
     if (it == std::end(cont)) {
-      return out.str();
+      return;
     }
     detail::out_to(out, *it++);
     for (; it != std::end(cont); ++it) {
       detail::out_to(out, delimiter, *it);
     }
-    return out.str();
-  });
+  }};
 }
 
-template<typename Val = std::int32_t>
+template<typename CharT = char, typename Dlm>
+constexpr inline auto join(const Dlm &delimiter) {
+  return operation{[delimiter](auto &&cont) {
+    auto out = std::basic_ostringstream<CharT>{};
+    cont | join_to(out, delimiter);
+    return out.str();
+  }};
+}
+
+template<typename Val>
 constexpr inline auto sum() {
   return fold(Val{}, func::plus);
 }
 
-template<typename Val = std::double_t>
+template<typename Val>
 constexpr inline auto average() {
   return operation([](auto &&cont) {
-    return sum<Val>()(cont) / static_cast<Val>(std::distance(std::begin(cont), std::end(cont)));
+    return (cont | sum<Val>()) / std::distance(std::begin(cont), std::end(cont));
   });
 }
 
 constexpr inline auto min() {
-  return operation([](auto &&cont) {
+  return operation{[](auto &&cont) {
     return *std::min_element(std::begin(cont), std::end(cont));
-  });
+  }};
 }
 
 template<typename Comp>
 constexpr inline auto min(Comp comp) {
-  return operation([comp](auto &&cont) {
+  return operation{[comp](auto &&cont) {
     return *std::min_element(std::begin(cont), std::end(cont), comp);
-  });
+  }};
 }
 
 constexpr inline auto max() {
-  return operation([](auto &&cont) {
+  return operation{[](auto &&cont) {
     return *std::max_element(std::begin(cont), std::end(cont));
-  });
+  }};
 }
 
 template<typename Comp>
 constexpr inline auto max(Comp comp) {
-  return operation([comp](auto &&cont) {
+  return operation{[comp](auto &&cont) {
     return *std::max_element(std::begin(cont), std::end(cont), comp);
-  });
+  }};
 }
 
 constexpr inline auto count() {
-  return operation([](auto &&cont) {
+  return operation{[](auto &&cont) {
     return std::distance(std::begin(cont), std::end(cont));
-  });
+  }};
 }
 
 template<typename Pred>
 constexpr inline auto count(Pred pred) {
-  return operation([pred](auto &&cont) {
+  return operation{[pred](auto &&cont) {
     return std::count_if(std::begin(cont), std::end(cont), pred);
-  });
+  }};
 }
 
 template<typename Pred>
 constexpr inline auto all(Pred pred) {
-  return operation([pred](auto &&cont) {
+  return operation{[pred](auto &&cont) {
     return std::all_of(std::begin(cont), std::end(cont), pred);
-  });
+  }};
 }
 
 template<typename Pred>
 constexpr inline auto any(Pred pred) {
-  return operation([pred](auto &&cont) {
+  return operation{[pred](auto &&cont) {
     return std::any_of(std::begin(cont), std::end(cont), pred);
-  });
+  }};
 }
 
 template<typename Pred>
 constexpr inline auto none(Pred pred) {
-  return operation([pred](auto &&cont) {
+  return operation{[pred](auto &&cont) {
     return std::none_of(std::begin(cont), std::end(cont), pred);
-  });
+  }};
 }
 
 template<typename Iter, typename OtherIter>
@@ -606,7 +615,7 @@ struct concat_iter {
   }
 
   concat_iter operator++(int) {
-    concat_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -637,23 +646,23 @@ struct concat_sequence {
   Iter first, last;
 
   public:
-  concat_sequence(Iter first, Iter last, const C &other)
-      : first(first), last(last), other(other) {}
+  concat_sequence(Iter first, Iter last, C other)
+      : first(first), last(last), other(std::move(other)) {}
 
   iterator begin() const {
-    return concat_iter(first, last, std::begin(other));
+    return {first, last, std::begin(other)};
   }
 
   iterator end() const {
-    return concat_iter(last, std::end(other));
+    return {last, std::end(other)};
   }
 };
 
 template<typename C>
-constexpr inline auto concat(const C &other) {
-  return operation([other](auto &&cont) {
-    return concat_sequence(std::begin(cont), std::end(cont), other);
-  });
+constexpr inline auto concat(C other) {
+  return operation{[other](auto &&cont) {
+    return concat_sequence{std::begin(cont), std::end(cont), other};
+  }};
 }
 
 template<typename Iter>
@@ -681,12 +690,12 @@ struct chunk_iter {
       : iter(iter), iter_end(end), n(n){};
 
   explicit constexpr chunk_iter(Iter end)
-      : iter(end), iter_end(end), n(){};
+      : iter(end), iter_end(end), n{} {};
 
   constexpr value_type operator*() {
-    Iter end = iter;
+    auto end = iter;
     advance(end);
-    return sequence(iter, end);
+    return sequence{iter, end};
   }
 
   chunk_iter &operator++() {
@@ -699,7 +708,7 @@ struct chunk_iter {
   }
 
   chunk_iter operator++(int) {
-    chunk_iter it = *this;
+    auto it = *this;
     ++*this;
     return it;
   }
@@ -716,23 +725,23 @@ struct chunk_iter {
 template<typename Size>
 constexpr inline auto chunk(Size n) {
   assert(n > 0);
-  return operation([n](auto &&cont) {
-    return sequence(chunk_iter(std::begin(cont), std::end(cont), n), chunk_iter(std::end(cont)));
-  });
+  return operation{[n](auto &&cont) {
+    return sequence{chunk_iter{std::begin(cont), std::end(cont), n}, chunk_iter{std::end(cont)}};
+  }};
 }
 
 constexpr inline auto print() {
-  return operation([](auto &&val) {
+  return operation{[](auto &&val) {
     whl::print(val);
     return val;
-  });
+  }};
 }
 
 constexpr inline auto println() {
-  return operation([](auto &&val) {
+  return operation{[](auto &&val) {
     whl::println(val);
     return val;
-  });
+  }};
 }
 
 } // namespace whl::op

@@ -21,6 +21,7 @@
 #pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -30,7 +31,7 @@ namespace tuple {
 
 template<typename Car, typename Cdr>
 constexpr inline auto cons(const Car &car, const Cdr &cdr) {
-  return std::pair(car, cdr);
+  return std::pair{car, cdr};
 }
 
 template<typename Pair>
@@ -45,9 +46,9 @@ constexpr inline auto cdr(const Pair &p) {
 
 struct unit_t {};
 
-constexpr inline unit_t unit = {};
+constexpr inline auto unit = unit_t{};
 
-constexpr inline unit_t tuple() { return unit; }
+constexpr inline auto tuple() { return unit; }
 
 template<typename T, typename... Args>
 constexpr inline auto tuple(const T &arg, const Args &...args) {
@@ -101,7 +102,7 @@ struct cons_t : std::pair<T, std::shared_ptr<cons_t<T>>> {
 
   template<typename Ptr>
   cons_t(const T &arg, Ptr ptr)
-      : std::pair<T, std::shared_ptr<cons_t<T>>>(arg, ptr) {}
+      : std::pair<T, std::shared_ptr<cons_t<T>>>{arg, ptr} {}
 };
 
 template<typename Car, typename Cdr>
@@ -119,9 +120,9 @@ inline auto cdr(const Pair &p) {
   return std::get<1>(*p);
 }
 
-constexpr inline std::nullptr_t nil = nullptr;
+constexpr inline auto nil = nullptr;
 
-constexpr inline std::nullptr_t list() { return nil; }
+constexpr inline auto list() { return nil; }
 
 template<typename T, typename... Args>
 constexpr inline auto list(const T &arg, const Args &...args) {

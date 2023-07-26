@@ -94,18 +94,11 @@ inline void out_to(Out &out, const Args &...args) {
   (..., (formatter<Args>()(args, out, nullptr, nullptr)));
 }
 
-template<typename Tuple, size_t... I>
-inline void out_tuple_to(std::basic_ostream<char> &out, const Tuple &tuple, std::index_sequence<I...>) {
+template<typename Out, typename Tuple, std::size_t... I>
+inline void out_tuple_to(Out &out, const Tuple &tuple, std::index_sequence<I...>) {
   out << '(';
   (..., out_to(out, I ? ", " : "", std::get<I>(tuple)));
   out << ')';
-}
-
-template<typename Tuple, size_t... I>
-inline void out_tuple_to(std::basic_ostream<wchar_t> &out, const Tuple &tuple, std::index_sequence<I...>) {
-  out << L'(';
-  (..., out_to(out, I ? L", " : L"", std::get<I>(tuple)));
-  out << L')';
 }
 
 } // namespace detail
@@ -115,9 +108,9 @@ inline auto format(const Fmt &fmt, const Args &...args) {
   return detail::format(std::begin(fmt), std::end(fmt), args...);
 }
 
-template<typename CharT = char, typename... Args>
+template<typename Char = char, typename... Args>
 inline auto to_string(const Args &...args) {
-  std::basic_ostringstream<CharT> out{};
+  auto out = std::basic_ostringstream<Char>{};
   detail::out_to(out, args...);
   return out.str();
 }
@@ -125,31 +118,17 @@ inline auto to_string(const Args &...args) {
 template<>
 struct formatter<std::string> {
 
-  template<typename FmtIter>
-  void operator()(const std::string &arg, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(const std::string &arg, Out &out, FmtIter first, FmtIter last) {
     out << arg;
-  }
-
-  template<typename FmtIter>
-  void operator()(const std::string &arg, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
-    std::wstring str(arg.length(), '\0');
-    std::transform(arg.begin(), arg.end(), str.begin(), [](auto &&ch) { return static_cast<wchar_t>(ch); });
-    out << str;
   }
 };
 
 template<>
 struct formatter<std::wstring> {
 
-  template<typename FmtIter>
-  void operator()(const std::wstring &arg, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
-    std::string str(arg.length(), '\0');
-    std::transform(arg.begin(), arg.end(), str.begin(), [](auto &&ch) { return static_cast<char>(ch); });
-    out << str;
-  }
-
-  template<typename FmtIter>
-  void operator()(const std::wstring &arg, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(const std::wstring &arg, Out &out, FmtIter first, FmtIter last) {
     out << arg;
   }
 };
@@ -157,8 +136,8 @@ struct formatter<std::wstring> {
 template<>
 struct formatter<const char *> {
 
-  template<typename FmtIter>
-  void operator()(const char *arg, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(const char *arg, Out &out, FmtIter first, FmtIter last) {
     out << arg;
   }
 };
@@ -166,8 +145,8 @@ struct formatter<const char *> {
 template<>
 struct formatter<const wchar_t *> {
 
-  template<typename FmtIter>
-  void operator()(const wchar_t *arg, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(const wchar_t *arg, Out &out, FmtIter first, FmtIter last) {
     out << arg;
   }
 };
@@ -175,28 +154,18 @@ struct formatter<const wchar_t *> {
 template<>
 struct formatter<bool> {
 
-  template<typename FmtIter>
-  void operator()(const bool arg, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(bool arg, Out &out, FmtIter first, FmtIter last) {
     out << (arg ? "true" : "false");
-  }
-
-  template<typename FmtIter>
-  void operator()(const bool arg, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
-    out << (arg ? L"true" : L"false");
   }
 };
 
 template<typename T1, typename T2>
 struct formatter<std::pair<T1, T2>> {
 
-  template<typename FmtIter>
-  void operator()(const std::pair<T1, T2> &pair, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
+  template<typename Out, typename FmtIter>
+  void operator()(const std::pair<T1, T2> &pair, Out &out, FmtIter first, FmtIter last) {
     detail::out_to(out, '(', pair.first, ", ", pair.second, ')');
-  }
-
-  template<typename FmtIter>
-  void operator()(const std::pair<T1, T2> &pair, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
-    detail::out_to(out, L'(', pair.first, L", ", pair.second, L')');
   }
 };
 
@@ -212,9 +181,9 @@ struct formatter<std::tuple<Args...>> {
 template<typename T>
 struct formatter<T, decltype(std::begin(std::declval<T>()), void())> {
 
-  template<typename FmtIter>
-  void operator()(const T &arg, std::basic_ostream<char> &out, FmtIter first, FmtIter last) {
-    auto &&it = std::begin(arg);
+  template<typename Out, typename FmtIter>
+  void operator()(const T &arg, Out &out, FmtIter first, FmtIter last) {
+    auto it = std::begin(arg);
     if (it == std::end(arg)) {
       out << "[]";
       return;
@@ -224,20 +193,6 @@ struct formatter<T, decltype(std::begin(std::declval<T>()), void())> {
       detail::out_to(out, ", ", *it);
     }
     out << ']';
-  }
-
-  template<typename FmtIter>
-  void operator()(const T &arg, std::basic_ostream<wchar_t> &out, FmtIter first, FmtIter last) {
-    auto &&it = std::begin(arg);
-    if (it == std::end(arg)) {
-      out << L"[]";
-      return;
-    }
-    detail::out_to(out, L'[', *it);
-    for (; it != std::end(arg); ++it) {
-      detail::out_to(out, L", ", *it);
-    }
-    out << L']';
   }
 };
 

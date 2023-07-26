@@ -31,9 +31,9 @@
 
 namespace whl {
 
-template<typename Size = std::size_t, typename Iter, typename Fn>
+template<typename Index = std::size_t, typename Iter, typename Fn>
 inline void foreach_indexed(Iter first, Iter last, Fn fn) {
-  for (Size i{}; first != last; ++first, ++i) {
+  for (auto i = Index{}; first != last; ++first, ++i) {
     fn(i, *first);
   }
 }
@@ -54,8 +54,8 @@ struct with_index {
 
   template<typename Iter>
   struct iter_indexed {
-    Iter it;
     decltype(std::size(cont)) index{};
+    Iter it;
 
     constexpr explicit iter_indexed(Iter it) : it(it) {}
 
@@ -64,8 +64,8 @@ struct with_index {
     }
 
     iter_indexed &operator++() {
-      ++it;
       ++index;
+      ++it;
       return *this;
     }
 
@@ -76,12 +76,22 @@ struct with_index {
 
   constexpr explicit with_index(const C &cont) : cont(cont) {}
 
-  constexpr auto begin() const {
-    return iter_indexed<decltype(std::begin(cont))>(std::begin(cont));
+  using iterator = iter_indexed<decltype(std::cbegin(cont))>;
+
+  constexpr iterator begin() const {
+    return iterator{std::cbegin(cont)};
   }
 
-  constexpr auto end() const {
-    return iter_indexed<decltype(std::end(cont))>(std::end(cont));
+  constexpr iterator end() const {
+    return iterator{std::cend(cont)};
+  }
+
+  constexpr iterator cbegin() const {
+    return begin();
+  }
+
+  constexpr iterator cend() const {
+    return end();
   }
 };
 
@@ -103,25 +113,23 @@ struct array {
   size_type size_;
 
   public:
-  array() : ptr(), size_() {}
+  array() : ptr{}, size_{} {}
 
-  array(pointer ptr, size_type size) : ptr(ptr), size_(size) {}
+  array(pointer ptr, size_type size) : ptr{ptr}, size_{size} {}
 
-  array(size_type size) : ptr(new value_type[size]()), size_(size) {}
-
-  array(const array &arr) : ptr(new value_type[arr.size_]), size_(arr.size_) {
-    for (auto i = 0; i < size_; ++i) {
+  array(const array &arr) : ptr{new value_type[arr.size_]}, size_{arr.size_} {
+    for (auto i = size_type{}; i < size_; ++i) {
       new (ptr + i) value_type(arr[i]);
     }
   }
 
-  array(array &&arr) : ptr(arr.ptr), size_(arr.size_) {
-    arr.ptr = pointer();
-    arr.size_ = size_type();
+  array(array &&arr) : ptr{arr.ptr}, size_{arr.size_} {
+    arr.ptr = pointer{};
+    arr.size_ = size_type{};
   }
 
   array(std::initializer_list<value_type> il) : ptr(new value_type[il.size()]), size_(il.size()) {
-    foreach_indexed(il, [this](auto &&i, auto &&v) {
+    foreach_indexed(il, [this](auto i, auto &&v) {
       new (ptr + i) value_type(std::move(v));
     });
   }
@@ -134,7 +142,7 @@ struct array {
     delete[] ptr;
     size_ = arr.size_;
     ptr = new value_type[size_];
-    for (auto i = 0; i < size_; ++i) {
+    for (auto i = size_type{}; i < size_; ++i) {
       new (ptr + i) value_type(arr[i]);
     }
     return *this;
@@ -144,8 +152,8 @@ struct array {
     delete[] ptr;
     ptr = arr.ptr;
     size_ = arr.size_;
-    arr.ptr = pointer();
-    arr.size_ = size_type();
+    arr.ptr = pointer{};
+    arr.size_ = size_type{};
     return *this;
   }
 
@@ -165,12 +173,20 @@ struct array {
     return ptr;
   }
 
+  const_iterator cbegin() const noexcept {
+    return begin();
+  }
+
   iterator end() noexcept {
     return ptr + size_;
   }
 
   const_iterator end() const noexcept {
     return ptr + size_;
+  }
+
+  const_iterator cend() const noexcept {
+    return end();
   }
 };
 

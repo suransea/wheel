@@ -33,7 +33,7 @@
 
 namespace whl::str {
 
-template<typename Iter, typename Regex>
+template<typename Iter>
 struct split_sequence {
   public:
   using const_iterator = std::regex_token_iterator<Iter>;
@@ -46,25 +46,34 @@ struct split_sequence {
   using difference_type = typename iterator::difference_type;
 
   private:
-  Regex regex;
   Iter first, last;
+  using regex_type = std::basic_regex<typename std::iterator_traits<Iter>::value_type>;
+  const regex_type regex;
 
   public:
-  split_sequence(Iter first, Iter last, const Regex &regex)
-      : regex(regex), first(first), last(last) {}
+  split_sequence(Iter first, Iter last, regex_type regex)
+      : first{first}, last{last}, regex(std::move(regex)) {}
 
-  iterator begin() const {
-    return std::regex_token_iterator(first, last, regex, -1);
+  const_iterator begin() const {
+    return {first, last, regex, -1};
   }
 
-  iterator end() const {
-    return std::regex_token_iterator<decltype(first)>();
+  const_iterator end() const {
+    return {};
+  }
+
+  const_iterator cbegin() const {
+    return begin();
+  }
+
+  const_iterator cend() const {
+    return end();
   }
 };
 
 template<typename Iter, typename Regex>
 constexpr inline auto split(Iter first, Iter last, const Regex &regex) {
-  return split_sequence(first, last, std::basic_regex(regex));
+  return split_sequence{first, last, std::basic_regex(regex)};
 }
 
 template<typename Str, typename Regex>
@@ -74,7 +83,7 @@ constexpr inline auto split(const Str &str, const Regex &regex) {
 
 template<typename CharT = char, typename Iter, typename Dlm>
 constexpr inline auto join(Iter first, Iter last, const Dlm &delimiter) {
-  return sequence(first, last) | op::join<CharT>(delimiter);
+  return sequence{first, last} | op::join<CharT>(delimiter);
 }
 
 template<typename CharT = char, typename C, typename Dlm>
@@ -85,7 +94,7 @@ constexpr inline auto join(const C &cont, const Dlm &delimiter) {
 template<typename Iter>
 inline void toupper_inplace(Iter first, Iter last) {
   std::transform(
-      first, last, first, [](auto ch) -> auto { return std::toupper(ch); });
+      first, last, first, [](auto ch) -> auto{ return std::toupper(ch); });
 }
 
 template<typename Str>
@@ -96,7 +105,7 @@ inline void toupper_inplace(Str &str) {
 template<typename Iter>
 inline void tolower_inplace(Iter first, Iter last) {
   std::transform(
-      first, last, first, [](auto ch) -> auto { return std::tolower(ch); });
+      first, last, first, [](auto ch) -> auto{ return std::tolower(ch); });
 }
 
 template<typename Str>
@@ -106,28 +115,28 @@ inline void tolower_inplace(Str &str) {
 
 template<typename Str>
 constexpr inline auto toupper(const Str &str) {
-  std::basic_string result(str);
+  auto result = std::basic_string(str);
   toupper_inplace(result);
   return result;
 }
 
 template<typename Iter>
 constexpr inline auto toupper(Iter first, Iter last) {
-  std::basic_string result(first, last);
+  auto result = std::basic_string(first, last);
   toupper_inplace(result);
   return result;
 }
 
 template<typename Str>
 constexpr inline auto tolower(const Str &str) {
-  std::basic_string result(str);
+  auto result = std::basic_string(str);
   tolower_inplace(result);
   return result;
 }
 
 template<typename Iter>
 constexpr inline auto tolower(Iter first, Iter last) {
-  std::basic_string result(first, last);
+  auto result = std::basic_string(first, last);
   tolower_inplace(result);
   return result;
 }
