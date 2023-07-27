@@ -26,6 +26,7 @@
 #include <numeric>
 #include <regex>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "whl/operation.hpp"
@@ -78,7 +79,8 @@ constexpr inline auto split(Iter first, Iter last, const Regex &regex) {
 
 template<typename Str, typename Regex>
 constexpr inline auto split(const Str &str, const Regex &regex) {
-  return split(std::begin(str), std::end(str), regex);
+  auto sv = std::basic_string_view(str);
+  return split(std::begin(sv), std::end(sv), regex);
 }
 
 template<typename CharT = char, typename Iter, typename Dlm>

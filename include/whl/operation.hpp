@@ -51,7 +51,7 @@ struct operation : Fn {
   constexpr explicit operation(Fn &&fn) : Fn(std::move(fn)) {}
 
   template<typename T>
-  friend constexpr inline auto operator|(T val, operation<Fn> op) {
+  friend constexpr inline auto operator|(const T &val, operation<Fn> op) {
     return op(val);
   }
 };
